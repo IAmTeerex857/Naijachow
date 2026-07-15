@@ -47,7 +47,7 @@ Netlify → your site → **Site settings → Environment variables** → add th
 | Key | Value |
 |---|---|
 | `ANTHROPIC_API_KEY` | your `sk-ant-...` key |
-| `SUPABASE_URL` | `https://uhluzpknigiibovmaisj.supabase.co` |
+| `SUPABASE_URL` | your Supabase project URL (`https://<project>.supabase.co`) |
 | `SUPABASE_SERVICE_KEY` | your `sb_secret_...` key |
 | `GOOGLE_SEARCH_API_KEY` | your Google API key |
 | `GOOGLE_SEARCH_ENGINE_ID` | your Programmable Search Engine id |
