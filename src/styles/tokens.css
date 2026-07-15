@@ -1,0 +1,89 @@
+/* ===========================================================================
+   NaijaPlate v2 Design Tokens
+   One token set, two themes. Light lives on :root, dark overrides on .dark
+   (toggled on <html>). Every surface/text/border/category tint re-maps
+   automatically — no per-component dark styles. Values are verbatim from the
+   v2 design handoff (design_handoff_naijaplate_v2/README.md → Design Tokens).
+   =========================================================================== */
+
+:root {
+  --bg: #F7F1E7;
+  --surface: #FFFFFF;
+  --surface2: #FBF5EA;
+  --ink: #241C15;
+  --ink2: #4A4033;
+  --muted: #8A7B68;
+  --border: #E7DCC9;
+  --primary: #B5341F;
+  --primary2: #D65235;
+  --accent: #E9A23B;
+  --accent-soft: #F6E6C4;
+  --jade: #1F7A5C;
+  --chipbg: #F0E7D6;
+
+  /* category tints */
+  --c-soup-bg: #F6DAD1;   --c-soup-tx: #A63419;
+  --c-swallow-bg: #F1E7C6; --c-swallow-tx: #876616;
+  --c-carb-bg: #DBE8D3;   --c-carb-tx: #2D5834;
+  --c-protein-bg: #EAD9C6; --c-protein-tx: #8A4A24;
+  --c-fruit-bg: #EEDCE6;  --c-fruit-tx: #843A63;
+
+  --shadow: 0 3px 18px rgba(36, 28, 21, 0.08);
+  --shadow-lg: 0 12px 40px rgba(36, 28, 21, 0.14);
+
+  /* fonts */
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-ui: 'Sora', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* radii */
+  --r-card: 18px;
+  --r-container: 26px;
+  --r-pill: 999px;
+  --r-chip: 10px;
+
+  /* category image-tile gradients (constant across themes — these are imagery) */
+  --tile-soup: linear-gradient(135deg, #E9B7A6, #D08561);
+  --tile-swallow: linear-gradient(135deg, #EAD9A6, #D2B871);
+  --tile-carb: linear-gradient(135deg, #BFD4B2, #93B586);
+  --tile-protein: linear-gradient(135deg, #DDB79A, #C28A63);
+  --tile-fruit: linear-gradient(135deg, #E7C2A0, #DFA073);
+}
+
+.dark {
+  --bg: #161210;
+  --surface: #211B16;
+  --surface2: #2A231D;
+  --ink: #F3EADB;
+  --ink2: #CDBFAB;
+  --muted: #A08E78;
+  --border: #3A322A;
+  --primary: #E4603F;
+  --primary2: #F0714E;
+  --accent: #F0B657;
+  --accent-soft: #3A2E17;
+  --jade: #3FA07C;
+  --chipbg: #2E2620;
+
+  --c-soup-bg: #3A241E;   --c-soup-tx: #F0A78E;
+  --c-swallow-bg: #33291A; --c-swallow-tx: #E9CE86;
+  --c-carb-bg: #1E2E20;   --c-carb-tx: #9BD0A0;
+  --c-protein-bg: #332619; --c-protein-tx: #E0B48C;
+  --c-fruit-bg: #2E1E2A;  --c-fruit-tx: #E3AECF;
+
+  --shadow: 0 3px 18px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 14px 44px rgba(0, 0, 0, 0.5);
+}
+
+/* Fixed brand colours (theme-independent — used on hero / dark cards).
+   Exposed as tokens so components don't hardcode hexes. */
+:root {
+  --brand-espresso: #1C1611;
+  --brand-cream: #F3EADB;
+  --brand-cream-muted: #D6C9B6;
+  --brand-cream-muted2: #B8A98F;
+  --grad-hero: linear-gradient(140deg, #1C1611, #2A1E16 60%, #3A231A);
+  --grad-nutrition: linear-gradient(135deg, #1C1611, #2A1E16);
+  --grad-premium: linear-gradient(120deg, #1C1611, #3A231A);
+  --grad-cta: linear-gradient(135deg, var(--primary2), var(--primary));
+}
