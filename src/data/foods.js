@@ -96,3 +96,19 @@ export const FOODS = [
 ]
 
 export const FOOD_BY_ID = Object.fromEntries(FOODS.map((f) => [f.id, f]))
+
+/* For a generated meal (which may be a combo like "Egusi Soup with Pounded Yam"),
+   pick the id of the best single selected dish to represent it visually — used as a
+   fallback when no curated `dish:<combo>` image exists yet. Prefers the "hero" of the
+   plate (soup/rice) over the side. Returns null if nothing matches. */
+const MEAL_IMAGE_CAT_PRIORITY = { soup: 0, carb: 1, protein: 2, swallow: 3, fruit: 4 }
+export function pickMealImageFoodId(meal) {
+  const hay = `${meal?.dish_key || ''} ${meal?.name || ''}`.toLowerCase()
+  const matches = FOODS.filter((f) => hay.includes(f.name.toLowerCase()))
+  if (!matches.length) return null
+  matches.sort((a, b) => {
+    const cat = (MEAL_IMAGE_CAT_PRIORITY[a.cat] ?? 9) - (MEAL_IMAGE_CAT_PRIORITY[b.cat] ?? 9)
+    return cat !== 0 ? cat : b.name.length - a.name.length // more specific name wins ties
+  })
+  return matches[0].id
+}

@@ -2,6 +2,7 @@
    API client — thin wrappers over the Netlify Functions.
    Contracts mirror NaijaPlate-PRD.md §4. All secrets live server-side.
    =========================================================================== */
+import { pickMealImageFoodId } from '../data/foods'
 
 /** Generate a full meal plan. */
 export async function generatePlan({ selectedFoods, selectedDays, fastingDay }) {
@@ -54,9 +55,19 @@ export function fetchFoodImage(food) {
   return fetchImage(`food:${food.id}`, food.q)
 }
 
-/** Image for a plated meal combo. Cache key: `dish:<dish_key>` (from the API).
-    Falls back to the meal name if the backend didn't return a dish_key. */
-export function fetchMealImage(meal) {
+/** Image for a plated meal combo. Tries the curated/auto-fetched `dish:<dish_key>`
+    image first; if that's missing (e.g. Google fetch disabled, no cached combo yet),
+    falls back to the curated `food:<id>` photo of the meal's main component so a real
+    image always shows. Cache key from the API's normalized dish_key. */
+export async function fetchMealImage(meal) {
   const key = meal.dish_key ? `dish:${meal.dish_key}` : `dish:${(meal.name || '').toLowerCase()}`
-  return fetchImage(key, `${meal.name} nigerian food`)
+  const primary = await fetchImage(key, `${meal.name} nigerian food`)
+  if (primary.url) return primary
+
+  const heroId = pickMealImageFoodId(meal)
+  if (heroId) {
+    const fallback = await fetchImage(`food:${heroId}`, heroId)
+    if (fallback.url) return fallback
+  }
+  return primary // null → emoji tile
 }
