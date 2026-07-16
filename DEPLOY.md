@@ -61,6 +61,24 @@ is almost always a `netlify.toml` typo. Then open your live URL and generate a p
 
 ---
 
+## Known status: plated meal-combo images (Google Custom Search)
+
+**Status:** parked — blocked by a Google account/project issue, NOT by this codebase.
+
+- Meal slots try a `dish:<combo>` image (auto-fetched from Google Custom Search, then cached to
+  Supabase). When that's unavailable, they fall back to the curated `food:<hero-dish>` photo, so
+  **every meal always shows a real image.** Food-card images all come from Supabase.
+- As of 2026-07-16, Google Custom Search returns `403 "This project does not have the access to
+  Custom Search JSON API"` for the Meal Generator project — even after: enabling the Custom Search
+  API, linking a billing account, and creating fresh unrestricted keys. A brand-new post-billing
+  key fails identically, which rules out code/key/billing/propagation. Likely an **organization
+  policy** on the Google Cloud org, or a Google-side block needing **Google Cloud Support**.
+- **Nothing to change in this repo.** The pipeline is built and tested; the moment Google grants
+  access (support ticket, or an org-policy fix, or a key from a non-org project), plated-combo
+  images fetch and cache automatically — no code change or redeploy required.
+- To finish it later: set `GOOGLE_SEARCH_API_KEY` (local `.env` + Netlify) to a key that returns
+  `200` from `https://www.googleapis.com/customsearch/v1?key=KEY&cx=CX&q=jollof&searchType=image`.
+
 ## Post-deploy notes
 
 - **Google images for meal combos:** enable the **"Custom Search API"** in your Google Cloud
