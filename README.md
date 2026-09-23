@@ -1,100 +1,87 @@
-# NaijaPlate v2 (React + Vite)
+# NaijaPlate
 
-Nigerian meal-planning web app. Pick the finished dishes you can make; Claude arranges
-a balanced multi-day plan (breakfast / lunch / dinner) from only those selections.
-
-This is the **v2 rebuild**: the frontend is now **React + Vite** with the full v2 design
-system (spice-red / saffron / jade palette, Bricolage Grotesque + Sora + JetBrains Mono,
-light **and** dark themes). The backend is unchanged in spirit — three **Netlify Functions**
-talk to Claude and a Supabase-backed image cache. Nothing secret ever reaches the browser.
+Nigerian meal planning with culturally realistic dish combinations, saved user preferences, and private TikTok/Instagram recipe imports.
 
 ## Stack
 
-- **Frontend:** React 18 + Vite → static build in `dist/`
-- **Backend:** Netlify Functions (`netlify/functions/`) → Claude Haiku + Supabase + Google Custom Search
-- **Hosting:** Netlify (auto-deploy from `main`). Still fits the < $15/mo budget.
+- React 18 and Vite
+- Vercel Functions
+- Azure OpenAI structured output
+- Supabase Auth, Postgres, Storage, and RLS
+- Trigger.dev background jobs
+- Supadata social metadata and transcripts
 
-## Project layout
+Payments through Bachs and transactional email through Resend are intentionally deferred.
 
-```
-naijaplate/
-├── index.html                  # Vite entry (loads fonts + /src/main.jsx)
-├── vite.config.js              # React plugin + dev proxy for /api → netlify dev
-├── netlify.toml                # build (vite) + /api/* redirect + security headers
-├── .env.example                # server-side secrets (set these in Netlify)
-├── src/
-│   ├── main.jsx                # React root
-│   ├── App.jsx                 # phases (select → loading → plan), state, swap logic
-│   ├── data/foods.js           # the 60-dish catalogue  ← VERIFY IDS (see below)
-│   ├── lib/
-│   │   ├── api.js              # generatePlan / swapMeal / image fetch (+ session cache)
-│   │   └── useTheme.js         # light/dark toggle, persisted
-│   ├── styles/
-│   │   ├── tokens.css          # v2 design tokens (:root light, .dark override)
-│   │   └── global.css          # all component styles, token-driven
-│   └── components/             # HeaderBand, SelectScreen, FoodCard, ImageTile,
-│                               # PlanScreen, DayCard, MealSlot, NutritionStrip,
-│                               # FastingCard, PremiumBanner, ThemeToggle
-└── netlify/functions/
-    ├── generate-plan.js        # POST /api/generate-plan  (Claude Haiku, dish pairing + dish_key)
-    ├── swap-meal.js            # POST /api/swap-meal       (single-meal regen)
-    └── get-food-image.js       # GET  /api/get-food-image  (memory → Supabase → Google)
-```
+## Local setup
 
-## Run it locally
+1. Copy `.env.example` to `.env.local` and enter development credentials.
+2. Run `npm install`.
+3. Run `npm run dev:full` for the frontend and Vercel Functions.
+4. Run `npm run trigger:dev` separately when testing social imports.
 
-You need Node 18+. The functions need env vars, so the simplest local setup is the
-Netlify CLI, which runs Vite **and** the functions together:
+Never put credentials in `.env.example`. It is a tracked documentation file.
+
+## Commands
 
 ```bash
-npm install
-npm install -g netlify-cli          # one-time
-cp .env.example .env                # then fill in your keys
-netlify dev                         # serves app + /api/* on http://localhost:8888
+npm run dev             # frontend-only Vite server
+npm run dev:full        # Vercel local frontend and API runtime
+npm run test            # unit tests
+npm run typecheck:trigger
+npm run build
+npm run check           # all local quality gates
+npm run trigger:dev
+npm run trigger:deploy
 ```
 
-Prefer plain Vite for pure UI work? `npm run dev` runs the app on :5173 and proxies
-`/api/*` to `netlify dev` on :8888 (start both). Without functions running, image/plan
-calls just fall back gracefully (emoji tiles, error message).
+## Main flows
 
-## Environment variables (set in Netlify → Site settings → Environment variables)
+### Meal planning
 
-| Key | Purpose |
-|---|---|
-| `ANTHROPIC_API_KEY` | Claude API (generate-plan, swap-meal) |
-| `GOOGLE_SEARCH_API_KEY` | Google Custom Search (image last resort) |
-| `GOOGLE_SEARCH_ENGINE_ID` | Programmable Search Engine id |
-| `SUPABASE_URL` | Supabase project URL |
-| `SUPABASE_SERVICE_KEY` | `sb_secret_...` service key (REST access to `image_cache`) |
+1. User answers planning and optional health questions.
+2. User selects at least three canonical dishes.
+3. Server constructs culturally valid candidate combinations.
+4. Azure OpenAI selects only from those candidates and supplies descriptions and estimates.
+5. Server validates and materializes every meal.
+6. A signed-in user receives the plan immediately.
+7. A guest receives one generation, but must sign in by email to claim and view it.
 
-⚠️ Never prefix these with `VITE_` — that would bundle them into the browser build.
+### Social imports
 
-## Deploy
+1. Signed-in user submits a public TikTok or Instagram URL.
+2. A private import record is created in Supabase.
+3. Trigger.dev retrieves metadata and transcript through Supadata.
+4. Azure OpenAI extracts an editable recipe draft and separates subjective review claims.
+5. The user approves, rejects, or requests changes.
 
-Push to `main`; Netlify builds with `npm run build` and publishes `dist/`. The `/api/*`
-redirect maps to the functions. **Do not** add `timeout = 26` under `[functions]` in
-`netlify.toml` — it's invalid and breaks every deploy.
+Imported content is private to the importing user by default.
 
-## ✅ FOOD ids are verified against Supabase
+## Database
 
-`src/data/foods.js` was reconstructed from the PRD and then **reconciled against the live
-Supabase `image_cache` export** (2026-07). All 60 `food:<id>` keys resolve to a curated
-image — no card falls back to the emoji tile for a missing photo. Five ids use Supabase's
-longer names: `whiterice`, `wheatswallow`, `boiledyam`, `friedplantain`, `stew`.
+Versioned migrations are in `supabase/migrations/` and include:
 
-Note: the old pre-pivot `index.html` (raw ingredients — Garri, spices, 8 categories) is
-**not** the source of truth; Supabase confirms the live app uses the pivoted finished-dishes
-model. If you add a dish later, curate its image in Supabase under `food:<newid>`.
+- Magic-link user profiles and preferences
+- Sensitive health profiles protected by RLS
+- Canonical dishes, aliases, combinations, and evidence
+- One-use guest generation sessions
+- Persisted and saved plans
+- Private recipes and social imports
+- Curated image assets
+- Future monthly subscription records
 
-## What changed vs the old single-file app
+Apply migrations through the Supabase CLI only after reviewing them against the target project.
 
-- Single `public/index.html` → componentised React + Vite build.
-- New v2 visual system with **dark mode** (was light-only).
-- Post-pivot model throughout: 5 dish categories (Soups / Swallows / Carbs / Protein /
-  Fruits), soup-must-pair-with-swallow rules, normalized `dish_key`, **Swap** on every meal.
-- Image function uses the 3-layer **Supabase + Google** cache (Unsplash fully retired).
+## Images
 
-## Not built yet (roadmap)
+The production image API reads approved Supabase Storage assets first, then the existing curated `image_cache`. It does not search Google or publish arbitrary scraped images. Every new asset should include provenance, licensing, attribution, and review status.
 
-User accounts + saved plans, Paystack payment + gating 14/30-day, vendor section,
-image-approval workflow, PDF export. See `../NaijaPlate-PRD.md` §8.
+## Security notes
+
+- Server secrets must exist only in Vercel and Trigger.dev environments.
+- Health data must not be logged or included in analytics.
+- AI output is schema-validated and restricted to server-approved candidates.
+- RLS protects all user-owned records.
+- API quotas are enforced atomically in Supabase; Turnstile adds guest abuse protection when configured.
+
+See `DEPLOY.md` for deployment steps and `docs/` for draft product policies.

@@ -2,6 +2,10 @@ node_modules
 dist
 .env
 .env.local
+.env.*.local
 .netlify
+.vercel
+.trigger
+supabase/.temp/
 *.log
 .DS_Store

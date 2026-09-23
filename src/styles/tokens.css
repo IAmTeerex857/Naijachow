@@ -1,89 +1,105 @@
 /* ===========================================================================
-   NaijaPlate v2 Design Tokens
-   One token set, two themes. Light lives on :root, dark overrides on .dark
-   (toggled on <html>). Every surface/text/border/category tint re-maps
-   automatically — no per-component dark styles. Values are verbatim from the
-   v2 design handoff (design_handoff_naijaplate_v2/README.md → Design Tokens).
+   NaijaPlate — design tokens
+   Values are verbatim from design_handoff_naijaplate/README.md → Design Tokens.
+
+   The handoff is dark-first: dark is the base palette and light overrides it
+   via [data-theme="light"] on <html>. Both themes are complete token sets, so
+   no component ever needs a per-theme rule.
    =========================================================================== */
 
 :root {
-  --bg: #F7F1E7;
-  --surface: #FFFFFF;
-  --surface2: #FBF5EA;
-  --ink: #241C15;
-  --ink2: #4A4033;
-  --muted: #8A7B68;
-  --border: #E7DCC9;
-  --primary: #B5341F;
-  --primary2: #D65235;
-  --accent: #E9A23B;
-  --accent-soft: #F6E6C4;
-  --jade: #1F7A5C;
-  --chipbg: #F0E7D6;
+  /* ---- dark (the design's default) ---- */
+  --bg: #0f0d0b;
+  --bg2: #17140f;
+  --surface: #1c1813;
+  --surface2: #251f18;
+  --ink: #f5efe6;
+  --ink2: #c3b9ab;
+  --muted: #857b6c;
+  --border: #2e2820;
+  --border2: #3d362b;
 
-  /* category tints */
-  --c-soup-bg: #F6DAD1;   --c-soup-tx: #A63419;
-  --c-swallow-bg: #F1E7C6; --c-swallow-tx: #876616;
-  --c-carb-bg: #DBE8D3;   --c-carb-tx: #2D5834;
-  --c-protein-bg: #EAD9C6; --c-protein-tx: #8A4A24;
-  --c-fruit-bg: #EEDCE6;  --c-fruit-tx: #843A63;
+  --orange: #f0813a;
+  --orange-2: #e0672a;
+  --orange-ink: #1a0e06;
+  --orange-soft: rgba(240, 129, 58, 0.14);
+  --purple: #9b7be0;
+  --blue: #5fa9e0;
+  --green: #69c08a;
+  --purple-soft: rgba(155, 123, 224, 0.16);
+  --blue-soft: rgba(95, 169, 224, 0.16);
+  --green-soft: rgba(105, 192, 138, 0.16);
 
-  --shadow: 0 3px 18px rgba(36, 28, 21, 0.08);
-  --shadow-lg: 0 12px 40px rgba(36, 28, 21, 0.14);
+  --shadow: 0 1px 0 rgba(255, 255, 255, 0.04), 0 20px 46px -22px rgba(0, 0, 0, 0.82);
+  --shadow-sm: 0 1px 0 rgba(255, 255, 255, 0.04), 0 8px 20px -12px rgba(0, 0, 0, 0.7);
 
-  /* fonts */
-  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
-  --font-ui: 'Sora', system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  /* Diagonal stripe used wherever a dish photo has not loaded (or does not
+     exist yet). It is the placeholder AND the genuine no-image fallback. */
+  --stripe: repeating-linear-gradient(
+    45deg,
+    var(--surface2),
+    var(--surface2) 10px,
+    var(--bg2) 10px,
+    var(--bg2) 20px
+  );
+
+  --font-ui: 'Hanken Grotesk', system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* radii */
   --r-card: 18px;
-  --r-container: 26px;
+  --r-panel: 20px;
+  --r-tile: 16px;
+  --r-btn: 11px;
+  --r-input: 12px;
+  --r-thumb: 12px;
   --r-pill: 999px;
-  --r-chip: 10px;
-
-  /* category image-tile gradients (constant across themes — these are imagery) */
-  --tile-soup: linear-gradient(135deg, #E9B7A6, #D08561);
-  --tile-swallow: linear-gradient(135deg, #EAD9A6, #D2B871);
-  --tile-carb: linear-gradient(135deg, #BFD4B2, #93B586);
-  --tile-protein: linear-gradient(135deg, #DDB79A, #C28A63);
-  --tile-fruit: linear-gradient(135deg, #E7C2A0, #DFA073);
 }
 
-.dark {
-  --bg: #161210;
-  --surface: #211B16;
-  --surface2: #2A231D;
-  --ink: #F3EADB;
-  --ink2: #CDBFAB;
-  --muted: #A08E78;
-  --border: #3A322A;
-  --primary: #E4603F;
-  --primary2: #F0714E;
-  --accent: #F0B657;
-  --accent-soft: #3A2E17;
-  --jade: #3FA07C;
-  --chipbg: #2E2620;
+:root[data-theme='light'] {
+  --bg: #f5f1e8;
+  --bg2: #fbf8f1;
+  --surface: #ffffff;
+  --surface2: #f3eee2;
+  --ink: #181410;
+  --ink2: #4c463c;
+  --muted: #968e7f;
+  --border: #e7e0d1;
+  --border2: #d7cfbc;
 
-  --c-soup-bg: #3A241E;   --c-soup-tx: #F0A78E;
-  --c-swallow-bg: #33291A; --c-swallow-tx: #E9CE86;
-  --c-carb-bg: #1E2E20;   --c-carb-tx: #9BD0A0;
-  --c-protein-bg: #332619; --c-protein-tx: #E0B48C;
-  --c-fruit-bg: #2E1E2A;  --c-fruit-tx: #E3AECF;
+  --orange: #e06a22;
+  --orange-2: #c4571a;
+  --orange-ink: #ffffff;
+  --orange-soft: rgba(224, 106, 34, 0.1);
+  --purple: #6e4bc4;
+  --blue: #2e7cb8;
+  --green: #3e9c64;
+  --purple-soft: rgba(110, 75, 196, 0.1);
+  --blue-soft: rgba(46, 124, 184, 0.1);
+  --green-soft: rgba(62, 156, 100, 0.1);
 
-  --shadow: 0 3px 18px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 14px 44px rgba(0, 0, 0, 0.5);
+  --shadow: 0 1px 2px rgba(24, 20, 16, 0.04), 0 22px 48px -24px rgba(24, 20, 16, 0.28);
+  --shadow-sm: 0 1px 2px rgba(24, 20, 16, 0.05), 0 8px 20px -14px rgba(24, 20, 16, 0.2);
+
+  --stripe: repeating-linear-gradient(
+    45deg,
+    var(--surface2),
+    var(--surface2) 10px,
+    #ece6da 10px,
+    #ece6da 20px
+  );
 }
 
-/* Fixed brand colours (theme-independent — used on hero / dark cards).
-   Exposed as tokens so components don't hardcode hexes. */
+/* Category → colour mapping (handoff §Category color mapping). */
 :root {
-  --brand-espresso: #1C1611;
-  --brand-cream: #F3EADB;
-  --brand-cream-muted: #D6C9B6;
-  --brand-cream-muted2: #B8A98F;
-  --grad-hero: linear-gradient(140deg, #1C1611, #2A1E16 60%, #3A231A);
-  --grad-nutrition: linear-gradient(135deg, #1C1611, #2A1E16);
-  --grad-premium: linear-gradient(120deg, #1C1611, #3A231A);
-  --grad-cta: linear-gradient(135deg, var(--primary2), var(--primary));
+  --cat-soup: var(--orange);
+  --cat-soup-soft: var(--orange-soft);
+  --cat-swallow: var(--purple);
+  --cat-swallow-soft: var(--purple-soft);
+  --cat-carb: var(--green);
+  --cat-carb-soft: var(--green-soft);
+  --cat-protein: var(--blue);
+  --cat-protein-soft: var(--blue-soft);
+  --cat-fruit: var(--ink2);
+  --cat-fruit-soft: var(--surface2);
 }

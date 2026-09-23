@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  [data-np-root]{
+    --bg:#0F0D0B; --bg2:#17140F; --surface:#1C1813; --surface2:#251F18;
+    --ink:#F5EFE6; --ink2:#C3B9AB; --muted:#857B6C; --border:#2E2820; --border2:#3D362B;
+    --orange:#F0813A; --orange-2:#E0672A; --orange-ink:#1A0E06; --orange-soft:rgba(240,129,58,0.14);
+    --purple:#9B7BE0; --blue:#5FA9E0; --green:#69C08A;
+    --purple-soft:rgba(155,123,224,0.16); --blue-soft:rgba(95,169,224,0.16); --green-soft:rgba(105,192,138,0.16);
+    --shadow:0 1px 0 rgba(255,255,255,0.04), 0 20px 46px -22px rgba(0,0,0,0.82);
+    --shadow-sm:0 1px 0 rgba(255,255,255,0.04), 0 8px 20px -12px rgba(0,0,0,0.7);
+    --stripe:repeating-linear-gradient(45deg, var(--surface2), var(--surface2) 10px, var(--bg2) 10px, var(--bg2) 20px);
+  }
+  [data-np-root][data-theme="light"]{
+    --bg:#F5F1E8; --bg2:#FBF8F1; --surface:#FFFFFF; --surface2:#F3EEE2;
+    --ink:#181410; --ink2:#4C463C; --muted:#968E7F; --border:#E7E0D1; --border2:#D7CFBC;
+    --orange:#E06A22; --orange-2:#C4571A; --orange-ink:#FFFFFF; --orange-soft:rgba(224,106,34,0.10);
+    --purple:#6E4BC4; --blue:#2E7CB8; --green:#3E9C64;
+    --purple-soft:rgba(110,75,196,0.10); --blue-soft:rgba(46,124,184,0.10); --green-soft:rgba(62,156,100,0.10);
+    --shadow:0 1px 2px rgba(24,20,16,0.04), 0 22px 48px -24px rgba(24,20,16,0.28);
+    --shadow-sm:0 1px 2px rgba(24,20,16,0.05), 0 8px 20px -14px rgba(24,20,16,0.20);
+    --stripe:repeating-linear-gradient(45deg, var(--surface2), var(--surface2) 10px, #ECE6DA 10px, #ECE6DA 20px);
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @keyframes pulse{0%,100%{opacity:0.28;transform:scale(0.82);}50%{opacity:0.85;transform:scale(1.14);}}
+  @keyframes rise{from{opacity:0; transform:translateY(10px);}to{opacity:1; transform:translateY(0);}}
+  @keyframes bar{0%{transform:scaleY(0.3);}50%{transform:scaleY(1);}100%{transform:scaleY(0.3);}}
+  @keyframes floaty{0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+  .np-scroll::-webkit-scrollbar{width:0;height:0;}
+  a{color:var(--orange);} a:hover{color:var(--orange-2);}
+</style>
+</helmet>
+
+<div data-np-root data-theme="{{ theme }}" style="min-height:100vh; display:flex; align-items:center; justify-content:center; gap:40px; padding:48px 24px; background:radial-gradient(circle at 30% 0%, var(--bg2), var(--bg) 70%); font-family:'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smoothing:antialiased;">
+
+  <!-- ============ PHONE ============ -->
+  <div style="position:relative; width:398px; height:842px; flex-shrink:0; border:13px solid #0b0a09; border-radius:58px; background:var(--bg); box-shadow:0 40px 90px -30px rgba(0,0,0,0.7), 0 0 0 2px rgba(255,255,255,0.04); overflow:hidden; display:flex; flex-direction:column; color:var(--ink); transition:background .4s ease, color .4s ease;">
+
+    <!-- notch -->
+    <div style="position:absolute; top:9px; left:50%; transform:translateX(-50%); width:118px; height:30px; background:#0b0a09; border-radius:0 0 18px 18px; z-index:40;"></div>
+
+    <!-- status bar -->
+    <div style="flex-shrink:0; height:46px; display:flex; align-items:flex-end; justify-content:space-between; padding:0 26px 6px; font-size:13px; font-weight:700; z-index:30;">
+      <span>9:41</span>
+      <div style="display:flex; align-items:center; gap:6px;">
+        <div style="display:flex; align-items:flex-end; gap:1.5px; height:10px;">
+          <div style="width:3px; height:4px; background:var(--ink); border-radius:1px;"></div>
+          <div style="width:3px; height:6px; background:var(--ink); border-radius:1px;"></div>
+          <div style="width:3px; height:8px; background:var(--ink); border-radius:1px;"></div>
+          <div style="width:3px; height:10px; background:var(--ink); border-radius:1px;"></div>
+        </div>
+        <div style="width:15px; height:11px; border:1.5px solid var(--ink); border-radius:3px; position:relative; opacity:0.9;"><div style="position:absolute; inset:1.5px; right:5px; background:var(--ink); border-radius:1px;"></div></div>
+      </div>
+    </div>
+
+    <!-- scroll area -->
+    <div class="np-scroll" style="flex:1; min-height:0; overflow-y:auto; overflow-x:hidden;">
+
+      <!-- ===== HOME ===== -->
+      <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+      <div style="animation:rise .45s ease both; padding:8px 18px 28px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+          <div style="display:flex; align-items:center; gap:9px;">
+            <div style="width:28px; height:28px; border-radius:8px; background:var(--orange); display:flex; align-items:center; justify-content:center;"><div style="width:10px; height:10px; border-radius:50%; border:2.5px solid var(--orange-ink);"></div></div>
+            <span style="font-size:16px; font-weight:800; letter-spacing:-0.02em;">NaijaPlate</span>
+          </div>
+          <button onClick="{{ toggleTheme }}" style="display:flex; align-items:center; gap:6px; background:var(--surface); color:var(--ink2); border:1px solid var(--border); border-radius:999px; padding:7px 12px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit;"><span style="width:7px; height:7px; border-radius:50%; background:var(--orange);"></span>{{ themeLabel }}</button>
+        </div>
+
+        <div style="position:relative; text-align:center; padding:14px 0 6px;">
+          <div style="position:absolute; left:50%; top:40%; transform:translate(-50%,-50%); width:220px; height:220px; border-radius:50%; filter:blur(46px); opacity:0.4; background:radial-gradient(circle, var(--orange), transparent 66%); pointer-events:none;"></div>
+          <img src="uploads/bloub-cercle-excite-orange.gif" alt="NaijaPlate mascot" style="position:relative; width:172px; height:172px; animation:floaty 4s ease-in-out infinite;">
+        </div>
+
+        <div style="display:inline-flex; align-items:center; gap:7px; background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:6px 12px; font-size:12px; font-weight:700; color:var(--ink2); margin:4px auto 0; width:auto;"><span style="width:6px; height:6px; border-radius:50%; background:var(--green);"></span>AI meal pairing</div>
+        <h1 style="font-weight:800; font-size:38px; line-height:1.02; letter-spacing:-0.03em; margin:16px 0 0; text-wrap:balance;">What can you <span style="color:var(--orange);">cook</span> today?</h1>
+        <p style="font-size:16px; line-height:1.5; color:var(--ink2); margin:14px 0 0; text-wrap:pretty;">Pick the Nigerian dishes you can make. We build a balanced multi-day plan from your picks.</p>
+        <div style="display:flex; flex-direction:column; gap:11px; margin-top:22px;">
+          <button onClick="{{ goSelect }}" style="background:var(--orange); color:var(--orange-ink); border:none; border-radius:14px; padding:16px; font-size:16px; font-weight:800; cursor:pointer; font-family:inherit;">Start planning →</button>
+          <button onClick="{{ goSaved }}" style="background:transparent; color:var(--ink); border:1px solid var(--border2); border-radius:14px; padding:16px; font-size:16px; font-weight:700; cursor:pointer; font-family:inherit;">See saved plans</button>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:12px; margin-top:26px;">
+          <div style="border:1px solid var(--border); border-radius:16px; background:var(--surface); padding:18px; box-shadow:var(--shadow-sm); display:flex; gap:14px; align-items:flex-start;">
+            <div style="width:38px; height:38px; flex-shrink:0; border-radius:10px; background:var(--orange-soft); display:flex; align-items:center; justify-content:center;"><div style="width:15px; height:15px; border-radius:4px; border:2.5px solid var(--orange);"></div></div>
+            <div><div style="font-size:11px; font-weight:700; color:var(--muted); letter-spacing:0.1em;">STEP 01</div><h3 style="font-size:17px; font-weight:700; margin:4px 0 4px; letter-spacing:-0.01em;">Select your dishes</h3><p style="font-size:14px; color:var(--ink2); line-height:1.5; margin:0;">60 finished dishes across soups, swallows, carbs, protein &amp; fruits.</p></div>
+          </div>
+          <div style="border:1px solid var(--border); border-radius:16px; background:var(--surface); padding:18px; box-shadow:var(--shadow-sm); display:flex; gap:14px; align-items:flex-start;">
+            <div style="width:38px; height:38px; flex-shrink:0; border-radius:10px; background:var(--purple-soft); display:flex; align-items:center; justify-content:center;"><div style="width:15px; height:15px; border-radius:50%; border:2.5px solid var(--purple);"></div></div>
+            <div><div style="font-size:11px; font-weight:700; color:var(--muted); letter-spacing:0.1em;">STEP 02</div><h3 style="font-size:17px; font-weight:700; margin:4px 0 4px; letter-spacing:-0.01em;">We build the plan</h3><p style="font-size:14px; color:var(--ink2); line-height:1.5; margin:0;">AI pairs your dishes into balanced days with soup-and-swallow logic.</p></div>
+          </div>
+          <div style="border:1px solid var(--border); border-radius:16px; background:var(--surface); padding:18px; box-shadow:var(--shadow-sm); display:flex; gap:14px; align-items:flex-start;">
+            <div style="width:38px; height:38px; flex-shrink:0; border-radius:10px; background:var(--green-soft); display:flex; align-items:center; justify-content:center;"><div style="width:15px; height:15px; border-radius:4px; background:var(--green);"></div></div>
+            <div><div style="font-size:11px; font-weight:700; color:var(--muted); letter-spacing:0.1em;">STEP 03</div><h3 style="font-size:17px; font-weight:700; margin:4px 0 4px; letter-spacing:-0.01em;">Cook &amp; swap</h3><p style="font-size:14px; color:var(--ink2); line-height:1.5; margin:0;">Recipes, one-tap swaps, and order from a nearby vendor.</p></div>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:baseline; justify-content:space-between; margin:28px 0 14px;">
+          <h2 style="font-size:20px; font-weight:800; letter-spacing:-0.02em; margin:0;">Popular dishes</h2>
+          <button onClick="{{ goSelect }}" style="background:none; border:none; color:var(--orange); font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;">All 60 →</button>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <sc-for list="{{ homeDishes }}" as="d" hint-placeholder-count="4">
+            <div style="border:1px solid var(--border); border-radius:15px; overflow:hidden; background:var(--surface); box-shadow:var(--shadow-sm);">
+              <div style="height:88px; background:var(--stripe); display:flex; align-items:flex-end; padding:7px;"><span style="font-size:9px; font-family:ui-monospace,monospace; color:var(--muted);">{{ d.file }}</span></div>
+              <div style="padding:10px 12px;"><div style="font-size:13px; font-weight:700;">{{ d.name }}</div><span style="font-size:11px; font-weight:700; color:{{ d.color }};">{{ d.cat }}</span></div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===== SELECT ===== -->
+      <sc-if value="{{ isSelect }}" hint-placeholder-val="{{ false }}">
+      <div style="animation:rise .45s ease both; padding:8px 18px 24px;">
+        <div style="font-size:11px; font-weight:700; color:var(--muted); letter-spacing:0.14em;">STEP 01 · SELECT</div>
+        <h1 style="font-size:30px; font-weight:800; letter-spacing:-0.03em; margin:8px 0 6px;">What can you cook?</h1>
+        <p style="font-size:15px; color:var(--ink2); line-height:1.45; margin:0 0 16px;">Tap dishes you can make. Pick at least 3.</p>
+
+        <div style="display:flex; align-items:center; gap:9px; background:var(--surface); border:1px solid var(--border2); border-radius:12px; padding:11px 14px; margin-bottom:12px;">
+          <div style="width:13px; height:13px; border-radius:50%; border:2px solid var(--muted); position:relative; flex-shrink:0;"><div style="position:absolute; width:5px; height:2px; background:var(--muted); transform:rotate(45deg); bottom:-2px; right:-3px;"></div></div>
+          <input value="{{ search }}" onInput="{{ onSearch }}" placeholder="Search — jollof, egusi, dodo…" style="border:none; background:transparent; outline:none; color:var(--ink); font-size:15px; font-family:inherit; width:100%;">
+        </div>
+
+        <div style="display:flex; gap:7px; overflow-x:auto; padding-bottom:4px; margin:0 -18px 16px; padding-left:18px; padding-right:18px;" class="np-scroll">
+          <sc-for list="{{ cats }}" as="c" hint-placeholder-count="6">
+            <button onClick="{{ c.onClick }}" style="{{ c.styleMobile }}">{{ c.label }}</button>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:center; padding:50px 20px; color:var(--muted);"><div style="font-size:16px; font-weight:700; color:var(--ink2);">No dishes match</div><div style="font-size:13px; margin-top:6px;">Try a different name.</div></div>
+        </sc-if>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <sc-for list="{{ visibleDishes }}" as="d" hint-placeholder-count="8">
+            <div onClick="{{ d.onToggle }}" role="button" style="{{ d.cardStyle }}">
+              <sc-if value="{{ d.sel }}" hint-placeholder-val="{{ false }}"><div style="position:absolute; top:8px; right:8px; width:22px; height:22px; border-radius:50%; background:var(--orange); color:var(--orange-ink); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; z-index:2;">✓</div></sc-if>
+              <div style="height:84px; background:var(--stripe); display:flex; align-items:flex-end; padding:7px;"><span style="font-size:9px; font-family:ui-monospace,monospace; color:var(--muted);">{{ d.file }}</span></div>
+              <div style="padding:10px 11px;">
+                <div style="font-size:13px; font-weight:700; line-height:1.2; margin-bottom:6px;">{{ d.name }}</div>
+                <span style="font-size:10px; font-weight:800; letter-spacing:0.04em; padding:3px 8px; border-radius:999px; background:{{ d.catSoft }}; color:{{ d.color }};">{{ d.cat }}</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="border:1px solid var(--border); border-radius:16px; background:var(--surface); padding:18px; box-shadow:var(--shadow-sm); margin-top:18px;">
+          <div style="font-size:13px; font-weight:800; letter-spacing:0.04em; margin-bottom:14px;">Fasting day <span style="color:var(--muted); font-weight:600;">(optional)</span></div>
+          <div style="display:flex; align-items:center; gap:13px;">
+            <button onClick="{{ toggleFasting }}" style="{{ fastSwitch }}"><span style="{{ fastKnob }}"></span></button>
+            <div><div style="font-size:14px; font-weight:600;">Include a light fasting day</div><div style="font-size:12px; color:var(--muted);">A rest day with hydration tips.</div></div>
+          </div>
+          <sc-if value="{{ fasting }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex; gap:6px; margin-top:14px; flex-wrap:wrap;">
+              <sc-for list="{{ weekdays }}" as="w" hint-placeholder-count="7"><button onClick="{{ w.onClick }}" style="{{ w.style }}">{{ w.label }}</button></sc-for>
+            </div>
+          </sc-if>
+        </div>
+
+        <div style="border:1px solid var(--border); border-radius:16px; background:var(--surface); padding:18px; box-shadow:var(--shadow-sm); margin-top:12px;">
+          <div style="font-size:13px; font-weight:800; letter-spacing:0.04em; margin-bottom:14px;">How many days?</div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <sc-for list="{{ durations }}" as="d" hint-placeholder-count="5">
+              <button onClick="{{ d.onClick }}" style="{{ d.style }}"><span style="font-size:17px; font-weight:800; line-height:1;">{{ d.n }}</span><span style="font-size:10px; font-weight:600; opacity:0.8;">days</span><sc-if value="{{ d.premium }}" hint-placeholder-val="{{ false }}"><span style="font-size:8px; font-weight:800; color:var(--purple); letter-spacing:0.06em;">PREMIUM</span></sc-if></button>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===== LOADING ===== -->
+      <sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
+      <div style="min-height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; overflow:hidden; padding:40px;">
+        <div style="position:absolute; width:260px; height:260px; border-radius:50%; filter:blur(58px); background:var(--orange); animation:pulse 3s ease-in-out infinite;"></div>
+        <div style="position:absolute; width:200px; height:200px; border-radius:50%; filter:blur(54px); background:var(--purple); animation:pulse 3s ease-in-out infinite; animation-delay:1.1s;"></div>
+        <div style="position:relative; display:flex; flex-direction:column; align-items:center; text-align:center;">
+          <img src="uploads/bloub-cercle-excite-orange.gif" alt="Building" style="width:104px; height:104px; animation:floaty 2.4s ease-in-out infinite;">
+          <div style="display:flex; gap:5px; align-items:flex-end; height:30px; margin-top:22px;">
+            <div style="width:6px; height:26px; background:var(--orange); border-radius:3px; animation:bar 1.1s ease-in-out infinite;"></div>
+            <div style="width:6px; height:26px; background:var(--orange); border-radius:3px; animation:bar 1.1s ease-in-out infinite; animation-delay:.15s;"></div>
+            <div style="width:6px; height:26px; background:var(--purple); border-radius:3px; animation:bar 1.1s ease-in-out infinite; animation-delay:.3s;"></div>
+            <div style="width:6px; height:26px; background:var(--blue); border-radius:3px; animation:bar 1.1s ease-in-out infinite; animation-delay:.45s;"></div>
+            <div style="width:6px; height:26px; background:var(--orange); border-radius:3px; animation:bar 1.1s ease-in-out infinite; animation-delay:.6s;"></div>
+          </div>
+          <div style="font-size:22px; font-weight:800; letter-spacing:-0.02em; margin-top:24px;">Building your plan…</div>
+          <div style="font-size:15px; color:var(--ink2); margin-top:6px;">Pairing your dishes into balanced days.</div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===== PLAN ===== -->
+      <sc-if value="{{ isPlan }}" hint-placeholder-val="{{ false }}">
+      <div style="animation:rise .45s ease both; padding:8px 18px 24px;">
+        <div style="font-size:11px; font-weight:700; color:var(--muted); letter-spacing:0.14em;">STEP 03 · YOUR PLAN</div>
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin:8px 0 16px;">
+          <h1 style="font-size:29px; font-weight:800; letter-spacing:-0.03em; margin:0;">Your {{ planDuration }}-day plan</h1>
+          <sc-if value="{{ justSaved }}" hint-placeholder-val="{{ false }}"><span style="font-size:12px; font-weight:700; color:var(--green); white-space:nowrap;">✓ Saved</span></sc-if>
+        </div>
+
+        <div style="display:flex; gap:10px; overflow-x:auto; margin:0 -18px 18px; padding:0 18px 4px;" class="np-scroll">
+          <sc-for list="{{ nutrition }}" as="s" hint-placeholder-count="5">
+            <div style="flex-shrink:0; min-width:88px; border:1px solid var(--border); border-radius:14px; background:var(--surface); padding:14px 16px; box-shadow:var(--shadow-sm);">
+              <div style="font-size:24px; font-weight:800; letter-spacing:-0.02em; color:{{ s.color }};">{{ s.val }}</div>
+              <div style="font-size:11px; font-weight:700; color:var(--muted); letter-spacing:0.06em; margin-top:2px;">{{ s.lbl }}</div>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <sc-for list="{{ planDays }}" as="day" hint-placeholder-count="3">
+            <div style="border:1px solid var(--border); border-radius:18px; background:var(--surface); overflow:hidden; box-shadow:var(--shadow-sm);">
+              <div style="display:flex; align-items:center; justify-content:space-between; padding:15px 18px; border-bottom:1px solid var(--border);">
+                <div style="font-size:16px; font-weight:800; letter-spacing:-0.01em;">{{ day.day }}</div>
+                <div style="font-size:12px; font-weight:700; color:var(--muted);">{{ day.kcalLabel }}</div>
+              </div>
+              <sc-if value="{{ day.is_fasting }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:28px 18px; text-align:center;">
+                  <div style="font-size:18px; font-weight:800; letter-spacing:-0.01em;">Rest &amp; Renew</div>
+                  <div style="font-size:14px; color:var(--ink2); margin-top:6px;">Your fasting day — reset body and spirit.</div>
+                  <div style="display:flex; gap:8px; justify-content:center; margin-top:16px; flex-wrap:wrap;">
+                    <span style="font-size:12px; font-weight:700; padding:7px 12px; border-radius:999px; background:var(--blue-soft); color:var(--blue);">Drink water</span>
+                    <span style="font-size:12px; font-weight:700; padding:7px 12px; border-radius:999px; background:var(--green-soft); color:var(--green);">Light walk</span>
+                    <span style="font-size:12px; font-weight:700; padding:7px 12px; border-radius:999px; background:var(--orange-soft); color:var(--orange);">Warm tea</span>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ day.notFasting }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex; flex-direction:column;">
+                  <sc-for list="{{ day.meals }}" as="m" hint-placeholder-count="3">
+                    <div style="padding:14px 16px; border-bottom:1px solid var(--border); display:flex; gap:13px;">
+                      <div style="width:82px; height:82px; flex-shrink:0; border-radius:12px; background:var(--stripe); position:relative; overflow:hidden;">
+                        <sc-if value="{{ m.swapping }}" hint-placeholder-val="{{ false }}"><div style="position:absolute; inset:0; background:rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; color:#fff; font-size:11px; font-weight:700;">Swapping…</div></sc-if>
+                      </div>
+                      <div style="flex:1; min-width:0;">
+                        <div style="font-size:10px; font-weight:800; letter-spacing:0.1em; color:var(--muted);">{{ m.type }}</div>
+                        <div style="font-size:15px; font-weight:700; margin:3px 0 6px; letter-spacing:-0.01em; line-height:1.2;">{{ m.name }}</div>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:9px;">
+                          <span style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:7px; background:var(--surface2); color:var(--ink2); border:1px solid var(--border);">{{ m.kcal }} kcal</span>
+                          <span style="font-size:10px; font-weight:700; padding:3px 8px; border-radius:7px; background:var(--green-soft); color:var(--green);">{{ m.protein }}g protein</span>
+                        </div>
+                        <div style="display:flex; gap:7px;">
+                          <button onClick="{{ m.onToggleNutrition }}" style="background:var(--surface2); border:1px solid var(--border); color:var(--ink2); border-radius:8px; padding:6px 9px; font-size:11px; font-weight:700; cursor:pointer; font-family:inherit;">Info</button>
+                          <a href="{{ m.recipeUrl }}" target="_blank" rel="noopener noreferrer" style="background:var(--surface2); border:1px solid var(--border); color:var(--ink2); border-radius:8px; padding:6px 9px; font-size:11px; font-weight:700; text-decoration:none;">▶ Recipe</a>
+                          <button onClick="{{ m.onSwap }}" style="background:var(--orange-soft); border:1px solid transparent; color:var(--orange); border-radius:8px; padding:6px 11px; font-size:11px; font-weight:800; cursor:pointer; font-family:inherit; margin-left:auto;">Swap</button>
+                        </div>
+                        <sc-if value="{{ m.expanded }}" hint-placeholder-val="{{ false }}">
+                          <div style="margin-top:10px; padding:11px; border-radius:9px; background:var(--surface2); border:1px solid var(--border); font-size:12px; color:var(--ink2); line-height:1.5;">
+                            <div style="margin-bottom:5px;"><strong style="color:var(--ink);">Carbs</strong> {{ m.carbs }}g · <strong style="color:var(--ink);">Fat</strong> {{ m.fat }}g · <strong style="color:var(--ink);">Protein</strong> {{ m.protein }}g</div>
+                            <div>{{ m.health }}</div>
+                          </div>
+                        </sc-if>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:flex; gap:10px; margin-top:18px;">
+          <button onClick="{{ goSelect }}" style="flex:1; background:transparent; color:var(--ink); border:1px solid var(--border2); border-radius:12px; padding:14px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit;">Start over</button>
+          <button onClick="{{ savePlan }}" style="flex:1; background:var(--orange); color:var(--orange-ink); border:none; border-radius:12px; padding:14px; font-size:14px; font-weight:800; cursor:pointer; font-family:inherit;">Save plan</button>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===== SAVED ===== -->
+      <sc-if value="{{ isSaved }}" hint-placeholder-val="{{ false }}">
+      <div style="animation:rise .45s ease both; padding:8px 18px 24px;">
+        <div style="font-size:11px; font-weight:700; color:var(--muted); letter-spacing:0.14em;">LIBRARY</div>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin:8px 0 18px;">
+          <h1 style="font-size:29px; font-weight:800; letter-spacing:-0.03em; margin:0;">Saved plans</h1>
+          <button onClick="{{ goSelect }}" style="background:var(--orange); color:var(--orange-ink); border:none; border-radius:11px; padding:10px 16px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit;">+ New</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:14px;">
+          <sc-for list="{{ savedPlans }}" as="p" hint-placeholder-count="4">
+            <div style="border:1px solid var(--border); border-radius:18px; background:var(--surface); overflow:hidden; box-shadow:var(--shadow-sm);">
+              <div style="height:96px; background:var(--stripe); position:relative;"><span style="position:absolute; top:11px; left:11px; font-size:11px; font-weight:800; letter-spacing:0.06em; padding:5px 11px; border-radius:999px; background:var(--bg2); color:var(--orange); border:1px solid var(--border);">{{ p.days }} DAYS</span></div>
+              <div style="padding:16px 18px;">
+                <div style="font-size:17px; font-weight:800; letter-spacing:-0.01em;">{{ p.title }}</div>
+                <div style="font-size:12px; color:var(--muted); margin-top:3px;">{{ p.date }} · avg {{ p.kcal }} kcal</div>
+                <div style="font-size:13px; color:var(--ink2); margin-top:10px; line-height:1.5;">{{ p.dishes }}</div>
+                <div style="display:flex; gap:8px; margin-top:14px;">
+                  <button onClick="{{ p.onOpen }}" style="flex:1; background:var(--surface2); border:1px solid var(--border); color:var(--ink); border-radius:10px; padding:10px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;">Open</button>
+                  <button onClick="{{ p.onDuplicate }}" style="background:var(--surface2); border:1px solid var(--border); color:var(--muted); border-radius:10px; padding:10px 14px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;">Duplicate</button>
+                </div>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===== VENDOR ===== -->
+      <sc-if value="{{ isVendor }}" hint-placeholder-val="{{ false }}">
+      <div style="animation:rise .45s ease both; padding:8px 18px 24px;">
+        <div style="font-size:11px; font-weight:700; color:var(--muted); letter-spacing:0.14em;">ORDER IN</div>
+        <h1 style="font-size:29px; font-weight:800; letter-spacing:-0.03em; margin:8px 0 6px;">Vendors near you</h1>
+        <p style="font-size:15px; color:var(--ink2); line-height:1.45; margin:0 0 18px;">Don't feel like cooking? Order any dish from a trusted local kitchen.</p>
+        <div style="display:flex; flex-direction:column; gap:13px;">
+          <sc-for list="{{ vendors }}" as="v" hint-placeholder-count="4">
+            <div style="border:1px solid var(--border); border-radius:18px; background:var(--surface); padding:16px; box-shadow:var(--shadow-sm);">
+              <div style="display:flex; gap:14px;">
+                <div style="width:74px; height:74px; border-radius:14px; background:var(--stripe); flex-shrink:0; border:1px solid var(--border);"></div>
+                <div style="flex:1; min-width:0;">
+                  <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;"><div style="font-size:16px; font-weight:800; letter-spacing:-0.01em;">{{ v.name }}</div><span style="font-size:13px; font-weight:800; color:var(--orange); white-space:nowrap;">★ {{ v.rating }}</span></div>
+                  <div style="font-size:12px; color:var(--muted); margin-top:3px;">{{ v.area }} · {{ v.eta }} · {{ v.price }}</div>
+                  <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:9px;">
+                    <sc-for list="{{ v.tags }}" as="t" hint-placeholder-count="3"><span style="font-size:10px; font-weight:700; padding:4px 9px; border-radius:999px; background:var(--surface2); color:var(--ink2); border:1px solid var(--border);">{{ t }}</span></sc-for>
+                  </div>
+                </div>
+              </div>
+              <button onClick="{{ v.onOrder }}" style="{{ v.btnStyle }}">{{ v.btnLabel }}</button>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===== PREMIUM ===== -->
+      <sc-if value="{{ isPremium }}" hint-placeholder-val="{{ false }}">
+      <div style="animation:rise .45s ease both; padding:8px 18px 24px; position:relative; overflow:hidden;">
+        <div style="position:absolute; width:280px; height:280px; right:-80px; top:-80px; border-radius:50%; filter:blur(64px); opacity:0.28; background:radial-gradient(circle, var(--purple), transparent 66%); pointer-events:none;"></div>
+        <div style="position:relative; text-align:center; margin-bottom:24px;">
+          <div style="display:inline-flex; align-items:center; gap:7px; background:var(--purple-soft); border-radius:999px; padding:6px 13px; font-size:12px; font-weight:800; color:var(--purple); letter-spacing:0.04em; margin-bottom:16px;">✦ PREMIUM</div>
+          <h1 style="font-size:34px; font-weight:800; letter-spacing:-0.03em; margin:0; text-wrap:balance;">Plan further. Eat <span style="color:var(--orange);">better</span>.</h1>
+          <p style="font-size:16px; color:var(--ink2); line-height:1.5; margin:14px 0 0;">Unlock 14 &amp; 30-day plans, full nutrition reports and smart substitutions.</p>
+        </div>
+        <div style="position:relative; display:flex; flex-direction:column; gap:14px;">
+          <sc-for list="{{ tiers }}" as="t" hint-placeholder-count="3">
+            <div style="{{ t.cardStyle }}">
+              <sc-if value="{{ t.featured }}" hint-placeholder-val="{{ false }}"><div style="position:absolute; top:0; left:0; right:0; text-align:center; background:var(--orange); color:var(--orange-ink); font-size:11px; font-weight:800; letter-spacing:0.1em; padding:6px;">MOST POPULAR</div></sc-if>
+              <div style="{{ t.padStyleMobile }}">
+                <div style="font-size:13px; font-weight:800; letter-spacing:0.04em; color:{{ t.accent }};">{{ t.name }}</div>
+                <div style="display:flex; align-items:baseline; gap:6px; margin:12px 0 4px;"><span style="font-size:34px; font-weight:800; letter-spacing:-0.03em;">{{ t.price }}</span><span style="font-size:14px; color:var(--muted); font-weight:600;">{{ t.per }}</span></div>
+                <div style="font-size:13px; color:var(--ink2); margin-bottom:16px;">{{ t.tagline }}</div>
+                <div style="display:flex; flex-direction:column; gap:9px; margin-bottom:18px;">
+                  <sc-for list="{{ t.features }}" as="f" hint-placeholder-count="4"><div style="display:flex; align-items:flex-start; gap:9px; font-size:13px; color:var(--ink2);"><span style="color:var(--orange); font-weight:800; flex-shrink:0;">✓</span>{{ f }}</div></sc-for>
+                </div>
+                <button onClick="{{ t.onClick }}" style="{{ t.btnStyle }}">{{ t.cta }}</button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+    </div>
+
+    <!-- ===== SELECT ACTION BAR ===== -->
+    <sc-if value="{{ isSelect }}" hint-placeholder-val="{{ false }}">
+    <div style="flex-shrink:0; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 18px; background:var(--bg2); border-top:1px solid var(--border);">
+      <div style="display:flex; align-items:center; gap:9px; min-width:0;">
+        <span style="font-size:26px; font-weight:800; color:var(--orange); line-height:1;">{{ selCount }}</span>
+        <span style="font-size:12px; color:var(--ink2); line-height:1.2;">{{ selStatus }}</span>
+      </div>
+      <button onClick="{{ handleGenerate }}" style="{{ ctaStyleMobile }}">Plan →</button>
+    </div>
+    </sc-if>
+
+    <!-- ===== TAB BAR ===== -->
+    <div style="flex-shrink:0; display:flex; align-items:stretch; padding:8px 8px 4px; background:var(--bg2); border-top:1px solid var(--border);">
+      <button onClick="{{ goHome }}" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; background:none; border:none; cursor:pointer; padding:6px 0; font-family:inherit; color:{{ tabHomeColor }};">
+        <span style="width:18px; height:18px; border:2.2px solid currentColor; border-radius:5px;"></span>
+        <span style="font-size:10px; font-weight:700;">Home</span>
+      </button>
+      <button onClick="{{ goSelect }}" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; background:none; border:none; cursor:pointer; padding:6px 0; font-family:inherit; color:{{ tabPlanColor }};">
+        <span style="position:relative; width:18px; height:18px; border:2.2px solid currentColor; border-radius:50%;"><span style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:8px; height:2.2px; background:currentColor; border-radius:2px;"></span><span style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:2.2px; height:8px; background:currentColor; border-radius:2px;"></span></span>
+        <span style="font-size:10px; font-weight:700;">New Plan</span>
+      </button>
+      <button onClick="{{ goSaved }}" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; background:none; border:none; cursor:pointer; padding:6px 0; font-family:inherit; color:{{ tabSavedColor }};">
+        <span style="width:14px; height:18px; border:2.2px solid currentColor; border-radius:3px 3px 0 0; clip-path:polygon(0 0,100% 0,100% 100%,50% 74%,0 100%);"></span>
+        <span style="font-size:10px; font-weight:700;">Saved</span>
+      </button>
+      <button onClick="{{ goVendor }}" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; background:none; border:none; cursor:pointer; padding:6px 0; font-family:inherit; color:{{ tabVendorColor }};">
+        <span style="position:relative; width:16px; height:15px; border:2.2px solid currentColor; border-radius:0 0 5px 5px; margin-top:3px;"><span style="position:absolute; top:-6px; left:50%; transform:translateX(-50%); width:9px; height:9px; border:2.2px solid currentColor; border-bottom:none; border-radius:5px 5px 0 0;"></span></span>
+        <span style="font-size:10px; font-weight:700;">Vendors</span>
+      </button>
+      <button onClick="{{ goPremium }}" style="flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; background:none; border:none; cursor:pointer; padding:6px 0; font-family:inherit; color:{{ tabPremiumColor }};">
+        <span style="width:16px; height:16px; background:currentColor; transform:rotate(45deg); border-radius:3px;"></span>
+        <span style="font-size:10px; font-weight:700;">Premium</span>
+      </button>
+    </div>
+    <div style="flex-shrink:0; display:flex; justify-content:center; padding:4px 0 8px; background:var(--bg2);"><div style="width:130px; height:5px; border-radius:3px; background:var(--ink); opacity:0.28;"></div></div>
+
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:900,&quot;height&quot;:940}}">
+class Component extends DCLogic {
+  state = {
+    theme: 'dark', screen: 'home',
+    selected: new Set(['jollof','egusi','poundedyam','friedfish','plantain','chicken','pap','akara','watermelon']),
+    search: '', cat: 'all', fasting: false, fday: null, duration: 3,
+    plan: null, pools: null, planDuration: 3, expanded: {}, swapping: {},
+    userSaved: [], justSaved: false, orderedVendor: null,
+  };
+
+  CATS = [
+    { key:'all', label:'All' }, { key:'soup', label:'Soups' }, { key:'swallow', label:'Swallows' },
+    { key:'carb', label:'Carbs' }, { key:'protein', label:'Protein' }, { key:'fruit', label:'Fruits' },
+  ];
+  CAT_COLOR = { soup:'var(--orange)', swallow:'var(--purple)', carb:'var(--green)', protein:'var(--blue)', fruit:'var(--ink2)' };
+  CAT_SOFT  = { soup:'var(--orange-soft)', swallow:'var(--purple-soft)', carb:'var(--green-soft)', protein:'var(--blue-soft)', fruit:'var(--surface2)' };
+  CAT_CAL = { soup:[260,18,8,16], swallow:[300,5,60,2], carb:[420,9,72,7], protein:[240,26,4,14], fruit:[90,1,22,0] };
+  BREAKFAST = new Set(['pap','oats','bread','toastbread','akara','moimoi','custard','eggs','yam','plantain']);
+  WD = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  WDFULL = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  HEALTH = {
+    breakfast:'A light, energising start — pair with fruit or a warm drink.',
+    lunch:'Balanced midday plate with a solid protein source.',
+    dinner:'A hearty, traditional dinner. Keep portions moderate at night.',
+  };
+
+  FOODS = [
+    ['egusi','Egusi Soup','soup'],['banga','Banga Soup','soup'],['ofensala','Ofe Nsala','soup'],
+    ['bitterleaf','Bitterleaf Soup','soup'],['oha','Oha Soup','soup'],['afang','Afang Soup','soup'],
+    ['eforiro','Efo Riro','soup'],['ogbono','Ogbono Soup','soup'],['okrasoup','Okra Soup','soup'],
+    ['peppersoup','Pepper Soup','soup'],
+    ['poundedyam','Pounded Yam','swallow'],['eba','Eba','swallow'],['amala','Amala','swallow'],
+    ['fufu','Fufu','swallow'],['semovita','Semovita','swallow'],['tuwo','Tuwo Shinkafa','swallow'],
+    ['jollof','Jollof Rice','carb'],['friedrice','Fried Rice','carb'],['whiterice','White Rice & Stew','carb'],
+    ['ofada','Ofada Rice','carb'],['spaghetti','Spaghetti','carb'],['moimoi','Moi Moi','carb'],
+    ['akara','Akara','carb'],['pap','Pap','carb'],['yam','Boiled Yam','carb'],['asaro','Yam Porridge','carb'],
+    ['oats','Oats','carb'],['bread','Bread','carb'],['toastbread','Toast Bread','carb'],['custard','Custard','carb'],
+    ['friedfish','Fried Fish','protein'],['beans','Beans','protein'],['chicken','Chicken','protein'],
+    ['beef','Beef / Assorted','protein'],['plantain','Fried Plantain','protein'],['eggs','Eggs','protein'],
+    ['turkey','Turkey','protein'],
+    ['banana','Banana','fruit'],['orange','Orange','fruit'],['mango','Mango','fruit'],
+    ['pineapple','Pineapple','fruit'],['pawpaw','Pawpaw','fruit'],['watermelon','Watermelon','fruit'],
+    ['avocado','Avocado','fruit'],['guava','Guava','fruit'],['apple','Apple','fruit'],
+  ];
+  get FOOD_BY_ID(){ if(!this._fbi){ this._fbi=Object.fromEntries(this.FOODS.map(f=>[f[0],{name:f[1],cat:f[2]}])); } return this._fbi; }
+
+  DURATIONS = [{n:3},{n:5},{n:7},{n:14,premium:true},{n:30,premium:true}];
+
+  DEFAULT_SAVED = [
+    {title:'Family Week',days:7,date:'Aug 14',dishIds:['jollof','egusi','poundedyam','friedfish','plantain','chicken','eba','okrasoup'],fasting:false,fday:null},
+    {title:'Light & Lean',days:5,date:'Aug 09',dishIds:['eforiro','beans','chicken','amala','watermelon','eggs','oats'],fasting:false,fday:null},
+    {title:'Weekend Feast',days:3,date:'Aug 03',dishIds:['friedrice','turkey','poundedyam','egusi','beef','jollof'],fasting:false,fday:null},
+    {title:'Fasting Reset',days:5,date:'Jul 28',dishIds:['pap','moimoi','okrasoup','watermelon','eba','beans'],fasting:true,fday:'Wed'},
+    {title:'Protein Push',days:7,date:'Jul 21',dishIds:['beef','friedfish','eggs','beans','jollof','chicken'],fasting:false,fday:null},
+    {title:'Budget Days',days:3,date:'Jul 15',dishIds:['beans','eba','eforiro','banana','pap'],fasting:false,fday:null},
+  ];
+
+  VENDORS = [
+    {name:'Iya Basira Kitchen',area:'Yaba, Lagos',rating:'4.9',eta:'25–35 min',price:'₦₦',tags:['Soups','Swallows','Jollof']},
+    {name:'Mama Put Express',area:'Surulere',rating:'4.7',eta:'30–45 min',price:'₦₦',tags:['Amala','Ewedu','Assorted']},
+    {name:'The Ofada Spot',area:'Lekki Phase 1',rating:'4.8',eta:'20–30 min',price:'₦₦₦',tags:['Ofada','Sauce','Beef']},
+    {name:'GreenLeaf Bowls',area:'Ikeja GRA',rating:'4.6',eta:'35–50 min',price:'₦₦',tags:['Efo Riro','Grilled','Healthy']},
+  ];
+
+  groupsFrom(ids){
+    const g={soup:[],swallow:[],carb:[],protein:[],fruit:[]};
+    ids.forEach(id=>{ const f=this.FOOD_BY_ID[id]; if(f) g[f.cat].push(id); });
+    return g;
+  }
+  buildPools(ids){
+    const g=this.groupsFrom(ids);
+    const bItems=ids.filter(id=>this.BREAKFAST.has(id));
+    let bp=[];
+    bItems.forEach(b=>bp.push([b]));
+    bItems.forEach(b=>g.fruit.slice(0,2).forEach(f=>bp.push([b,f])));
+    if(!bp.length) (g.carb.length?g.carb:ids).slice(0,3).forEach(c=>bp.push([c]));
+    if(!bp.length) bp=[[ids[0]]];
+
+    let lp=[];
+    g.carb.forEach(c=>{ if(g.protein.length) g.protein.forEach(p=>lp.push([c,p])); else lp.push([c]); });
+    if(!lp.length) g.protein.forEach(p=>lp.push([p]));
+    if(!lp.length) lp=[[ids[0]]];
+
+    let dp=[];
+    g.soup.forEach(s=>{ if(g.swallow.length) g.swallow.forEach(w=>dp.push([s,w])); else dp.push([s]); });
+    g.carb.forEach(c=>g.protein.forEach(p=>dp.push([c,p])));
+    if(!dp.length) g.soup.concat(g.carb).slice(0,3).forEach(x=>dp.push([x]));
+    if(!dp.length) dp=[[ids[ids.length-1]]];
+
+    return { breakfast:bp, lunch:lp, dinner:dp };
+  }
+  buildPlan(ids, duration, fasting, fday){
+    const pools=this.buildPools(ids);
+    const days=[];
+    let fi=-1;
+    if(fasting && fday){ const wi=this.WD.indexOf(fday); fi = (wi>=0 && wi<duration) ? wi : 1; }
+    for(let i=0;i<duration;i++){
+      days.push({
+        label:`Day ${i+1} · ${this.WDFULL[i%7]}`,
+        is_fasting: i===fi,
+        meals:[ {slot:'breakfast',idx:i%pools.breakfast.length},
+                {slot:'lunch',idx:i%pools.lunch.length},
+                {slot:'dinner',idx:i%pools.dinner.length} ],
+      });
+    }
+    return { days, pools, duration };
+  }
+  expandMeal(slot, combo){
+    const names=combo.map(id=>this.FOOD_BY_ID[id]?this.FOOD_BY_ID[id].name:id);
+    let k=0,p=0,c=0,fat=0;
+    combo.forEach(id=>{ const cat=this.FOOD_BY_ID[id]?this.FOOD_BY_ID[id].cat:'carb'; const m=this.CAT_CAL[cat]||[300,10,40,8]; k+=m[0];p+=m[1];c+=m[2];fat+=m[3]; });
+    return { type:slot.toUpperCase(), name:names.join(' & '), file:combo[0]+'.jpg', kcal:k, protein:p, carbs:c, fat, health:this.HEALTH[slot] };
+  }
+
+  go(screen){ this.setState({ screen, justSaved:false }); }
+
+  toggleFood(id){ this.setState(s=>{ const n=new Set(s.selected); n.has(id)?n.delete(id):n.add(id); return {selected:n}; }); }
+
+  handleGenerate(){
+    if(this.state.selected.size<3) return;
+    const ids=[...this.state.selected];
+    const { duration, fasting, fday } = this.state;
+    this.setState({ screen:'loading' });
+    setTimeout(()=>{
+      const built=this.buildPlan(ids, duration, fasting, fday);
+      this.setState({ plan:built.days, pools:built.pools, planDuration:duration, screen:'plan', expanded:{}, justSaved:false });
+    }, 2400);
+  }
+
+  swap(di, slot){
+    this.setState(st=>{ const key=di+'-'+slot; return { swapping:{...st.swapping, [key]:true} }; });
+    setTimeout(()=>{
+      this.setState(st=>{
+        const pool=st.pools[slot];
+        const days=st.plan.map((d,i)=> i!==di ? d : { ...d, meals:d.meals.map(m=> m.slot===slot ? {...m, idx:(m.idx+1)%pool.length} : m) });
+        const key=di+'-'+slot; const sw={...st.swapping}; delete sw[key];
+        return { plan:days, swapping:sw };
+      });
+    }, 650);
+  }
+
+  toggleNutrition(di, slot){ this.setState(st=>{ const key=di+'-'+slot; const e={...st.expanded}; e[key]=!e[key]; return {expanded:e}; }); }
+
+  savePlan(){
+    this.setState(st=>{
+      if(!st.plan) return {};
+      const ids=[...st.selected];
+      const names=ids.slice(0,5).map(id=>this.FOOD_BY_ID[id]?this.FOOD_BY_ID[id].name:id).join(' · ');
+      const nut=this.calcNutrition(st.plan, st.pools);
+      const entry={ title:`My ${st.planDuration}-day plan`, days:st.planDuration, date:'Today',
+        kcal:nut.kcal, dishes:names, dishIds:ids, fasting:st.fasting, fday:st.fday };
+      return { userSaved:[entry, ...st.userSaved], justSaved:true };
+    });
+  }
+  openSaved(entry){
+    const built=this.buildPlan(entry.dishIds, entry.days, entry.fasting, entry.fday);
+    this.setState({ plan:built.days, pools:built.pools, planDuration:entry.days, screen:'plan', expanded:{}, justSaved:false });
+  }
+  duplicateSaved(entry){
+    this.setState(st=>({ userSaved:[{...entry, title:entry.title+' (copy)', date:'Today'}, ...st.userSaved] }));
+  }
+
+  calcNutrition(days, pools){
+    let k=0,p=0,c=0,fat=0,n=0;
+    days.forEach(d=>{ if(d.is_fasting) return; n++; d.meals.forEach(m=>{ const em=this.expandMeal(m.slot, pools[m.slot][m.idx]); k+=em.kcal;p+=em.protein;c+=em.carbs;fat+=em.fat; }); });
+    n=n||1;
+    return { kcal:Math.round(k/n), protein:Math.round(p/n), carbs:Math.round(c/n), fat:Math.round(fat/n) };
+  }
+
+  tabColor(screen){
+    const active = this.state.screen===screen || (screen==='select' && (this.state.screen==='loading'||this.state.screen==='plan'));
+    return active ? 'var(--orange)' : 'var(--muted)';
+  }
+
+  tiers(){
+    const base='width:100%; border-radius:11px; padding:13px; font-size:14px; font-weight:700; font-family:inherit;';
+    return [
+      { name:'FREE', accent:'var(--ink2)', price:'₦0', per:'/forever', tagline:'Everything to get started.',
+        features:['Up to 7-day plans','60-dish catalogue','Meal swaps & recipes','Print your plan'],
+        cta:'Current plan', featured:false, onClick:()=>{},
+        cardStyle:'position:relative; border:1px solid var(--border); border-radius:20px; background:var(--surface); overflow:hidden; box-shadow:var(--shadow-sm);',
+        padStyleMobile:'padding:22px;',
+        btnStyle:base+'background:var(--surface2); border:1px solid var(--border); color:var(--muted); cursor:default;' },
+      { name:'PREMIUM', accent:'var(--orange)', price:'₦2,500', per:'/month', tagline:'For serious home cooks.',
+        features:['Everything in Free','14 & 30-day plans','Full nutrition reports','Smart substitutions','Goal-based meals'],
+        cta:'Upgrade to Premium', featured:true, onClick:()=>this.go('select'),
+        cardStyle:'position:relative; border:2px solid var(--orange); border-radius:20px; background:var(--surface); overflow:hidden; box-shadow:var(--shadow);',
+        padStyleMobile:'padding:38px 22px 22px;',
+        btnStyle:base+'background:var(--orange); border:none; color:var(--orange-ink); font-weight:800; cursor:pointer;' },
+      { name:'FAMILY', accent:'var(--purple)', price:'₦5,000', per:'/month', tagline:'Plans for the whole house.',
+        features:['Everything in Premium','Up to 5 profiles','Dietitian review','Vendor priority ordering','Shared shopping lists'],
+        cta:'Choose Family', featured:false, onClick:()=>this.go('vendor'),
+        cardStyle:'position:relative; border:1px solid var(--border); border-radius:20px; background:var(--surface); overflow:hidden; box-shadow:var(--shadow-sm);',
+        padStyleMobile:'padding:22px;',
+        btnStyle:base+'background:transparent; border:1px solid var(--border2); color:var(--ink); cursor:pointer;' },
+    ];
+  }
+
+  renderVals(){
+    const s=this.state;
+    const q=s.search.trim().toLowerCase();
+    const visible=this.FOODS.filter(f=> q ? f[1].toLowerCase().includes(q) : (s.cat==='all'||f[2]===s.cat));
+
+    const visibleDishes=visible.map(([id,name,cat])=>{
+      const sel=s.selected.has(id);
+      return { id,name,cat, file:id+'.jpg', color:this.CAT_COLOR[cat], catSoft:this.CAT_SOFT[cat], sel,
+        onToggle:()=>this.toggleFood(id),
+        cardStyle:'position:relative; cursor:pointer; border-radius:15px; overflow:hidden; background:var(--surface); box-shadow:var(--shadow-sm); border:'+(sel?'2px solid var(--orange);':'1px solid var(--border);') };
+    });
+
+    const cats=this.CATS.map(c=>{ const active=s.cat===c.key&&!q;
+      return { label:c.label, onClick:()=>this.setState({cat:c.key,search:''}),
+        styleMobile:'flex-shrink:0; white-space:nowrap; border:1px solid '+(active?'transparent':'var(--border)')+'; background:'+(active?'var(--orange)':'var(--surface)')+'; color:'+(active?'var(--orange-ink)':'var(--ink2)')+'; border-radius:999px; padding:9px 15px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;' };
+    });
+
+    const durations=this.DURATIONS.map(d=>{ const active=s.duration===d.n;
+      return { n:d.n, premium:!!d.premium, onClick:()=>this.setState({duration:d.n}),
+        style:'display:flex; flex-direction:column; align-items:center; gap:2px; min-width:60px; border:1px solid '+(active?'transparent':'var(--border)')+'; background:'+(active?'var(--orange)':'var(--surface2)')+'; color:'+(active?'var(--orange-ink)':'var(--ink)')+'; border-radius:12px; padding:11px 9px; cursor:pointer; font-family:inherit;' };
+    });
+
+    const weekdays=this.WD.map(w=>{ const active=s.fday===w;
+      return { label:w, onClick:()=>this.setState({fday:w}),
+        style:'border:1px solid '+(active?'transparent':'var(--border)')+'; background:'+(active?'var(--orange)':'var(--surface2)')+'; color:'+(active?'var(--orange-ink)':'var(--ink2)')+'; border-radius:9px; padding:8px 12px; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit;' };
+    });
+
+    const homeDishes=[['jollof','Jollof Rice','carb'],['egusi','Egusi Soup','soup'],['poundedyam','Pounded Yam','swallow'],['friedfish','Fried Fish','protein']]
+      .map(([id,name,cat])=>({name,cat,file:id+'.jpg',color:this.CAT_COLOR[cat]}));
+
+    const count=s.selected.size, enough=count>=3;
+
+    let planDays=[], nutrition=[];
+    if(s.plan && s.pools){
+      planDays=s.plan.map((d,di)=>{
+        const meals=d.is_fasting?[]:d.meals.map(m=>{
+          const em=this.expandMeal(m.slot, s.pools[m.slot][m.idx]);
+          const key=di+'-'+m.slot;
+          return { ...em, expanded:!!s.expanded[key], swapping:!!s.swapping[key],
+            onSwap:()=>this.swap(di,m.slot), onToggleNutrition:()=>this.toggleNutrition(di,m.slot),
+            recipeUrl:'https://www.youtube.com/results?search_query='+encodeURIComponent(em.name+' Nigerian recipe') };
+        });
+        const dayKcal=meals.reduce((a,m)=>a+m.kcal,0);
+        return { day:d.label, is_fasting:d.is_fasting, notFasting:!d.is_fasting, meals,
+          kcalLabel:d.is_fasting?'Rest day':('~'+dayKcal+' kcal') };
+      });
+      const nut=this.calcNutrition(s.plan, s.pools);
+      const bal=nut.protein>=34?'A':nut.protein>=26?'A−':'B+';
+      nutrition=[
+        {val:''+nut.kcal,lbl:'AVG KCAL',color:'var(--ink)'},
+        {val:nut.protein+'g',lbl:'PROTEIN',color:'var(--green)'},
+        {val:nut.carbs+'g',lbl:'CARBS',color:'var(--ink)'},
+        {val:nut.fat+'g',lbl:'FAT',color:'var(--ink)'},
+        {val:bal,lbl:'BALANCE',color:'var(--orange)'},
+      ];
+    }
+
+    const savedPlans=[...s.userSaved, ...this.DEFAULT_SAVED].map(p=>{
+      const kcal = p.kcal || this.calcNutrition(this.buildPlan(p.dishIds,p.days,p.fasting,p.fday).days, this.buildPools(p.dishIds)).kcal;
+      return { title:p.title, days:p.days, date:p.date, kcal, dishes:p.dishes || p.dishIds.map(id=>this.FOOD_BY_ID[id]?this.FOOD_BY_ID[id].name:id).slice(0,5).join(' · '),
+        onOpen:()=>this.openSaved(p), onDuplicate:()=>this.duplicateSaved(p) };
+    });
+
+    const vendors=this.VENDORS.map(v=>{ const ordered=s.orderedVendor===v.name;
+      return { ...v, btnLabel:ordered?'✓ Order placed':'Order now', onOrder:()=>this.setState({orderedVendor:v.name}),
+        btnStyle:'margin-top:14px; width:100%; border:none; border-radius:10px; padding:11px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit; background:'+(ordered?'var(--green)':'var(--orange)')+'; color:'+(ordered?'#08120c':'var(--orange-ink)')+';' };
+    });
+
+    return {
+      theme:s.theme, themeLabel:s.theme==='dark'?'Dark':'Light',
+      toggleTheme:()=>this.setState(x=>({theme:x.theme==='dark'?'light':'dark'})),
+      isHome:s.screen==='home', isSelect:s.screen==='select', isLoading:s.screen==='loading',
+      isPlan:s.screen==='plan', isSaved:s.screen==='saved', isVendor:s.screen==='vendor', isPremium:s.screen==='premium',
+      goHome:()=>this.go('home'), goSelect:()=>this.go('select'), goSaved:()=>this.go('saved'),
+      goVendor:()=>this.go('vendor'), goPremium:()=>this.go('premium'),
+      tabHomeColor:this.tabColor('home'), tabPlanColor:this.tabColor('select'), tabSavedColor:this.tabColor('saved'),
+      tabVendorColor:this.tabColor('vendor'), tabPremiumColor:this.tabColor('premium'),
+      homeDishes, visibleDishes, cats, durations, weekdays, isEmpty:visible.length===0,
+      search:s.search, onSearch:(e)=>this.setState({search:e.target.value}),
+      selCount:count, hasSel:count>0, clearSel:()=>this.setState({selected:new Set()}),
+      selStatus: count===0?'Tap dishes to select':(enough?'ready to plan':'select '+(3-count)+' more'),
+      ctaStyleMobile:'flex-shrink:0; border:none; border-radius:12px; padding:14px 22px; font-size:15px; font-weight:800; font-family:inherit; cursor:'+(enough?'pointer':'not-allowed')+'; background:'+(enough?'var(--orange)':'var(--surface2)')+'; color:'+(enough?'var(--orange-ink)':'var(--muted)')+';',
+      handleGenerate:()=>this.handleGenerate(),
+      fasting:s.fasting, toggleFasting:()=>this.setState(x=>({fasting:!x.fasting, fday:x.fasting?null:(x.fday||'Wed')})),
+      fastSwitch:'width:46px; height:27px; border-radius:999px; border:none; cursor:pointer; position:relative; transition:background .2s; background:'+(s.fasting?'var(--orange)':'var(--border2)')+'; flex-shrink:0;',
+      fastKnob:'position:absolute; width:21px; height:21px; border-radius:50%; background:#fff; top:3px; transition:left .2s; box-shadow:0 1px 3px rgba(0,0,0,0.3); left:'+(s.fasting?'22px':'3px')+';',
+      planDuration:s.planDuration, planDays, nutrition, justSaved:s.justSaved, savePlan:()=>this.savePlan(),
+      savedPlans, vendors, tiers:this.tiers(),
+    };
+  }
+}
+</script>
+</body>
+</html>

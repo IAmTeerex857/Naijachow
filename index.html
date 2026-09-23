@@ -8,12 +8,30 @@
       name="description"
       content="NaijaPlate — pick the Nigerian dishes you can make and get a balanced multi-day meal plan."
     />
+    <meta name="theme-color" content="#0F0D0B" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#F5F1E8" media="(prefers-color-scheme: light)" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     />
+    <script>
+      /* Set the theme before first paint. Without this the page renders the
+         dark default and then flips, which reads as a flash on every load.
+         useTheme.js reads the same key and keeps it in sync afterwards. */
+      ;(function () {
+        try {
+          var saved = localStorage.getItem('np-theme')
+          var theme =
+            saved ||
+            (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+          document.documentElement.setAttribute('data-theme', theme)
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'dark')
+        }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -1,15 +1,10 @@
 import { useMemo } from 'react'
 import { FOODS, CATEGORIES } from '../data/foods'
 import FoodCard from './FoodCard'
+import TurnstileWidget from './TurnstileWidget'
 
-const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const DURATIONS = [
-  { n: 3, note: null },
-  { n: 5, note: null },
-  { n: 7, note: { kind: 'popular', text: '⭐ Popular' } },
-  { n: 14, note: { kind: 'premium', text: '✨ Premium' } },
-  { n: 30, note: { kind: 'premium', text: '✨ Premium' } },
-]
+const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+const DURATIONS = [{ n: 3 }, { n: 5 }, { n: 7 }, { n: 14, premium: true }, { n: 30, premium: true }]
 
 export default function SelectScreen({
   selected,
@@ -20,145 +15,189 @@ export default function SelectScreen({
   cat,
   setCat,
   fasting,
-  setFasting,
+  onToggleFasting,
   fday,
   setFday,
   duration,
   setDuration,
   onGenerate,
+  onPremium,
   error,
+  signedIn,
+  onTurnstileToken,
+  turnstileToken,
+  turnstileResetKey,
 }) {
   const query = search.trim().toLowerCase()
 
-  // When a query is present it takes precedence over the active tab.
   const visible = useMemo(() => {
-    if (query) return FOODS.filter((f) => f.name.toLowerCase().includes(query))
-    if (cat === 'all') return FOODS
-    return FOODS.filter((f) => f.cat === cat)
+    return FOODS.filter((food) => {
+      const categoryMatches = cat === 'all' || food.cat === cat
+      const searchMatches = !query || `${food.name} ${food.id} ${food.q}`.toLowerCase().includes(query)
+      return categoryMatches && searchMatches
+    })
   }, [query, cat])
 
   const count = selected.size
   const enough = count >= 3
 
+  const status =
+    count === 0
+      ? 'Tap dishes to select'
+      : enough
+      ? `${count} dishes selected — ready`
+      : `selected — pick ${3 - count} more`
+
   return (
     <>
-      {/* Search + tabs */}
-      <div className="searchtabs">
-        <div className="searchfield">
-          <span aria-hidden="true">🔍</span>
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search dishes — jollof, egusi, dodo…"
-            aria-label="Search dishes"
-          />
-          {search && (
-            <button className="search-clear" onClick={() => setSearch('')} aria-label="Clear search">
-              ✕
-            </button>
-          )}
+      <div className="screen">
+        <div className="screen-head">
+          <div className="eyebrow">STEP 01 · SELECT</div>
+          <h1>What can you cook?</h1>
+          <p>Tap the dishes you can make. Pick at least 3 to build a plan.</p>
         </div>
-        <div className="tabs" role="tablist">
-          {CATEGORIES.map((c) => (
-            <button
-              key={c.key}
-              className={`tab ${cat === c.key && !query ? 'active' : ''}`}
-              onClick={() => setCat(c.key)}
-              role="tab"
-              aria-selected={cat === c.key && !query}
-            >
-              {c.label}
-            </button>
-          ))}
-        </div>
-      </div>
 
-      {/* Card grid */}
-      <div className="cardgrid">
-        {visible.length === 0 ? (
-          <div className="empty-state">
-            <div className="big">🍽️</div>
-            No dishes match “{search}”
+        {error && (
+          <div className={`notice ${error.premium ? 'premium' : 'warn'}`} role="alert">
+            <span className="mark" aria-hidden="true" />
+            <span>
+              {error.premium && <strong>Premium plan length. </strong>}
+              {error.message}
+              {error.premium && (
+                <>
+                  {' '}
+                  <button className="linkbtn" onClick={onPremium}>
+                    See Premium →
+                  </button>
+                </>
+              )}
+            </span>
           </div>
-        ) : (
-          visible.map((f) => (
-            <FoodCard key={f.id} food={f} selected={selected.has(f.id)} onToggle={onToggle} />
-          ))
         )}
-      </div>
 
-      {/* Options — fasting + duration */}
-      <div className="options">
-        <div>
-          <div className="optblock-title">Fasting day (optional)</div>
-          <div className="fastrow">
-            <button
-              className={`switch ${fasting ? 'on' : ''}`}
-              onClick={() => setFasting(!fasting)}
-              role="switch"
-              aria-checked={fasting}
-              aria-label="Include a fasting day"
-            >
-              <span className="knob" />
-            </button>
-            <div>
-              <div className="fastlabel">Include a light fasting day</div>
-              <div className="fasthint">We plan a rest day with hydration tips.</div>
-            </div>
+        <div className="filters">
+          <div className="searchfield">
+            <span className="glass" aria-hidden="true" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search dishes — jollof, egusi, dodo…"
+              aria-label="Search dishes"
+            />
           </div>
-          {fasting && (
-            <div className="daypicker">
-              {DAYS.map((d) => (
-                <button
-                  key={d}
-                  className={`daybtn ${fday === d ? 'active' : ''}`}
-                  onClick={() => setFday(d)}
-                >
-                  {d}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div>
-          <div className="optblock-title">How many days?</div>
-          <div className="durations">
-            {DURATIONS.map((d) => (
+          <div className="chips">
+            {CATEGORIES.map((c) => (
               <button
-                key={d.n}
-                className={`durpill ${duration === d.n ? 'active' : ''}`}
-                onClick={() => setDuration(d.n)}
+                key={c.key}
+                className={`chip ${cat === c.key && !query ? 'active' : ''}`}
+                onClick={() => {
+                  setCat(c.key)
+                  setSearch('')
+                }}
+                aria-pressed={cat === c.key && !query}
               >
-                <span className="num">{d.n}</span>
-                <span className="lbl">day{d.n > 1 ? 's' : ''}</span>
-                {d.note && <span className={`note ${d.note.kind}`}>{d.note.text}</span>}
+                {c.label}
               </button>
             ))}
           </div>
         </div>
+
+        {visible.length === 0 ? (
+          <div className="empty">
+            <strong>No dishes match your search</strong>
+            <span>Try a different name or clear the search.</span>
+          </div>
+        ) : (
+          <div className="dishgrid">
+            {visible.map((f) => (
+              <FoodCard key={f.id} food={f} selected={selected.has(f.id)} onToggle={onToggle} />
+            ))}
+          </div>
+        )}
+
+        <div className="options">
+          <div className="card optcard">
+            <div className="optcard-title">
+              Fasting day <span>(optional)</span>
+            </div>
+            <div className="fastrow">
+              <button
+                className={`switch ${fasting ? 'on' : ''}`}
+                onClick={onToggleFasting}
+                role="switch"
+                aria-checked={fasting}
+                aria-label="Include a fasting day"
+              >
+                <span className="knob" />
+              </button>
+              <div>
+                <div className="fastlabel">Include a light fasting day</div>
+                <div className="fasthint">We plan a rest day with hydration tips.</div>
+              </div>
+            </div>
+            {fasting && (
+              <div className="weekdays">
+                {WEEKDAYS.map((d, i) => {
+                  // A plan always starts on Monday, so a weekday beyond its
+                  // length can never occur — disable it rather than accept a
+                  // choice that would silently vanish from the plan.
+                  const reachable = i < duration
+                  return (
+                    <button
+                      key={d}
+                      className={`daybtn ${fday === d ? 'active' : ''}`}
+                      onClick={() => setFday(d)}
+                      disabled={!reachable}
+                      aria-pressed={fday === d}
+                      title={reachable ? undefined : `Outside a ${duration}-day plan`}
+                    >
+                      {d}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="card optcard">
+            <div className="optcard-title">How many days?</div>
+            <div className="durations">
+              {DURATIONS.map((d) => (
+                <button
+                  key={d.n}
+                  className={`durbtn ${duration === d.n ? 'active' : ''}`}
+                  onClick={() => (d.premium ? onPremium() : setDuration(d.n))}
+                  aria-pressed={duration === d.n}
+                >
+                  <span className="n">{d.n}</span>
+                  <span className="u">days</span>
+                  {d.premium && <span className="premium">PREMIUM</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Selection bar + CTA (sticky) */}
       <div className="selbar">
         <div className="selbar-left">
           <span className="selcount">{count}</span>
-          <span className="selstatus">
-            {count === 0 ? 'Tap dishes to select' : `dish${count === 1 ? '' : 'es'} selected`}
-          </span>
+          <span className="selstatus">{status}</span>
           {count > 0 && (
             <button className="selclear" onClick={onClear}>
               Clear
             </button>
           )}
         </div>
-        <div className="selbar-right">
-          {error && <span className="validation-msg">{error}</span>}
-          <button className="btn btn-cta" onClick={onGenerate} disabled={!enough}>
-            🍽️ Plan My Meals
-          </button>
-        </div>
+        {!signedIn && <TurnstileWidget onToken={onTurnstileToken} resetKey={turnstileResetKey} />}
+        <button
+          className="btn btn-orange btn-sm"
+          onClick={onGenerate}
+          disabled={!enough || (!signedIn && Boolean(import.meta.env.VITE_TURNSTILE_SITE_KEY) && !turnstileToken)}
+        >
+          Plan my meals →
+        </button>
       </div>
     </>
   )

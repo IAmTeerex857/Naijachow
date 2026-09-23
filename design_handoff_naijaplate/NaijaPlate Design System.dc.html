@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  [data-np-root]{
+    --bg:#0F0D0B; --bg2:#17140F; --surface:#1C1813; --surface2:#251F18;
+    --ink:#F5EFE6; --ink2:#C3B9AB; --muted:#857B6C; --border:#2E2820; --border2:#3D362B;
+    --orange:#F0813A; --orange-2:#E0672A; --orange-ink:#1A0E06;
+    --orange-soft:rgba(240,129,58,0.14);
+    --purple:#9B7BE0; --blue:#5FA9E0; --green:#69C08A;
+    --purple-soft:rgba(155,123,224,0.16); --blue-soft:rgba(95,169,224,0.16); --green-soft:rgba(105,192,138,0.16);
+    --shadow:0 1px 0 rgba(255,255,255,0.04), 0 20px 46px -22px rgba(0,0,0,0.82);
+    --shadow-sm:0 1px 0 rgba(255,255,255,0.04), 0 8px 20px -12px rgba(0,0,0,0.7);
+  }
+  [data-np-root][data-theme="light"]{
+    --bg:#F5F1E8; --bg2:#FCFAF4; --surface:#FFFFFF; --surface2:#F3EEE2;
+    --ink:#181410; --ink2:#4C463C; --muted:#968E7F; --border:#E7E0D1; --border2:#D7CFBC;
+    --orange:#E06A22; --orange-2:#C4571A; --orange-ink:#FFFFFF;
+    --orange-soft:rgba(224,106,34,0.10);
+    --purple:#6E4BC4; --blue:#2E7CB8; --green:#3E9C64;
+    --purple-soft:rgba(110,75,196,0.10); --blue-soft:rgba(46,124,184,0.10); --green-soft:rgba(62,156,100,0.10);
+    --shadow:0 1px 2px rgba(24,20,16,0.04), 0 22px 48px -24px rgba(24,20,16,0.28);
+    --shadow-sm:0 1px 2px rgba(24,20,16,0.05), 0 8px 20px -14px rgba(24,20,16,0.20);
+  }
+  @keyframes orbA{0%{transform:translate(0,0) scale(1);}50%{transform:translate(40px,-28px) scale(1.1);}100%{transform:translate(0,0) scale(1);}}
+  @keyframes orbB{0%{transform:translate(0,0) scale(1);}50%{transform:translate(-40px,26px) scale(0.92);}100%{transform:translate(0,0) scale(1);}}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @keyframes pulse{0%,100%{opacity:0.35;transform:scale(0.8);}50%{opacity:1;transform:scale(1.08);}}
+  a{color:var(--orange);}
+  a:hover{color:var(--orange-2);}
+</style>
+</helmet>
+
+<div data-np-root data-theme="{{ theme }}" style="min-height:100vh; background:var(--bg); color:var(--ink); font-family:'Hanken Grotesk', system-ui, sans-serif; -webkit-font-smoothing:antialiased; transition:background .4s ease, color .4s ease;">
+
+  <div style="max-width:1180px; margin:0 auto; padding:0 40px;">
+
+    <header style="display:flex; align-items:center; justify-content:space-between; padding:26px 0; border-bottom:1px solid var(--border);">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:34px; height:34px; border-radius:9px; background:var(--orange); display:flex; align-items:center; justify-content:center; box-shadow:var(--shadow-sm);">
+          <div style="width:13px; height:13px; border-radius:50%; border:2.5px solid var(--orange-ink);"></div>
+        </div>
+        <div style="display:flex; flex-direction:column; line-height:1.05;">
+          <span style="font-size:19px; font-weight:800; letter-spacing:-0.02em;">NaijaPlate</span>
+          <span style="font-size:10px; font-weight:600; letter-spacing:0.16em; color:var(--muted); margin-top:3px;">DESIGN SYSTEM · v3</span>
+        </div>
+      </div>
+      <button onClick="{{ toggleTheme }}" style="display:flex; align-items:center; gap:9px; background:var(--surface); color:var(--ink2); border:1px solid var(--border); border-radius:999px; padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer;" style-hover="border-color:var(--border2); color:var(--ink);">
+        <span style="width:8px; height:8px; border-radius:50%; background:var(--orange);"></span>{{ themeLabel }}
+      </button>
+    </header>
+
+    <!-- Hero -->
+    <section style="position:relative; overflow:hidden; margin:0 -40px; padding:92px 40px 100px;">
+      <div style="position:absolute; width:540px; height:540px; left:-160px; top:-190px; border-radius:50%; filter:blur(80px); opacity:0.5; background:radial-gradient(circle, var(--orange), transparent 66%); animation:orbA 16s ease-in-out infinite;"></div>
+      <div style="position:absolute; width:300px; height:300px; right:-40px; top:0; border-radius:50%; filter:blur(84px); opacity:0.22; background:radial-gradient(circle, var(--purple), transparent 66%); animation:orbB 20s ease-in-out infinite;"></div>
+      <div style="position:relative;">
+        <div style="font-size:12px; font-weight:700; letter-spacing:0.22em; color:var(--muted); margin-bottom:22px;">FOUNDATION · COLOR · TYPE · COMPONENTS · MOTION</div>
+        <h1 style="font-weight:800; font-size:76px; line-height:1.0; letter-spacing:-0.035em; margin:0; max-width:16ch; text-wrap:balance;">A warm, editorial system for <span style="color:var(--orange);">Nigerian</span> meal planning.</h1>
+        <p style="font-size:20px; line-height:1.55; color:var(--ink2); max-width:58ch; margin:26px 0 0; text-wrap:pretty;">Orange leads — deep, appetizing, unmistakable. Purple and blue step in only as small accents. One clean sans across a strong size-and-weight hierarchy. Light and dark from a single token set. No gradients.</p>
+      </div>
+    </section>
+
+    <!-- ===================== 01 COLOR ===================== -->
+    <section style="padding:60px 0; border-top:1px solid var(--border);">
+      <div style="display:flex; align-items:baseline; gap:16px; margin-bottom:36px;">
+        <span style="font-size:13px; font-weight:700; color:var(--muted); letter-spacing:0.1em;">01</span>
+        <h2 style="font-weight:800; font-size:40px; margin:0; letter-spacing:-0.025em;">Color</h2>
+      </div>
+
+      <div style="font-size:13px; font-weight:700; letter-spacing:0.14em; color:var(--muted); margin-bottom:16px;">LEAD · ORANGE</div>
+      <div style="display:grid; grid-template-columns:2fr 1fr 1fr; gap:14px; margin-bottom:40px;">
+        <div style="border-radius:16px; overflow:hidden; border:1px solid var(--border); box-shadow:var(--shadow-sm);">
+          <div style="height:120px; background:var(--orange);"></div>
+          <div style="padding:14px 16px; background:var(--surface);">
+            <div style="font-size:15px; font-weight:700;">Orange</div>
+            <div style="font-size:13px; color:var(--muted); margin-top:2px;">Primary actions, brand, focus</div>
+          </div>
+        </div>
+        <div style="border-radius:16px; overflow:hidden; border:1px solid var(--border); box-shadow:var(--shadow-sm);">
+          <div style="height:120px; background:var(--orange-2);"></div>
+          <div style="padding:14px 16px; background:var(--surface);">
+            <div style="font-size:15px; font-weight:700;">Orange deep</div>
+            <div style="font-size:13px; color:var(--muted); margin-top:2px;">Hover / pressed</div>
+          </div>
+        </div>
+        <div style="border-radius:16px; overflow:hidden; border:1px solid var(--border); box-shadow:var(--shadow-sm);">
+          <div style="height:120px; background:var(--orange-soft);"></div>
+          <div style="padding:14px 16px; background:var(--surface);">
+            <div style="font-size:15px; font-weight:700;">Orange soft</div>
+            <div style="font-size:13px; color:var(--muted); margin-top:2px;">Tints, selected fills</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="font-size:13px; font-weight:700; letter-spacing:0.14em; color:var(--muted); margin-bottom:16px;">ACCENTS · USED SPARINGLY</div>
+      <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:40px;">
+        <div style="border-radius:16px; overflow:hidden; border:1px solid var(--border);">
+          <div style="height:84px; background:var(--purple);"></div>
+          <div style="padding:12px 15px; background:var(--surface);"><div style="font-size:14px; font-weight:700;">Purple</div><div style="font-size:12px; color:var(--muted);">Premium</div></div>
+        </div>
+        <div style="border-radius:16px; overflow:hidden; border:1px solid var(--border);">
+          <div style="height:84px; background:var(--blue);"></div>
+          <div style="padding:12px 15px; background:var(--surface);"><div style="font-size:14px; font-weight:700;">Blue</div><div style="font-size:12px; color:var(--muted);">Info / links</div></div>
+        </div>
+        <div style="border-radius:16px; overflow:hidden; border:1px solid var(--border);">
+          <div style="height:84px; background:var(--green);"></div>
+          <div style="padding:12px 15px; background:var(--surface);"><div style="font-size:14px; font-weight:700;">Green</div><div style="font-size:12px; color:var(--muted);">Success / nutrition</div></div>
+        </div>
+      </div>
+
+      <div style="font-size:13px; font-weight:700; letter-spacing:0.14em; color:var(--muted); margin-bottom:16px;">NEUTRALS</div>
+      <div style="display:grid; grid-template-columns:repeat(6,1fr); gap:10px;">
+        <div><div style="height:64px; border-radius:12px; background:var(--bg); border:1px solid var(--border);"></div><div style="font-size:12px; margin-top:8px; font-weight:600;">bg</div></div>
+        <div><div style="height:64px; border-radius:12px; background:var(--surface); border:1px solid var(--border);"></div><div style="font-size:12px; margin-top:8px; font-weight:600;">surface</div></div>
+        <div><div style="height:64px; border-radius:12px; background:var(--surface2); border:1px solid var(--border);"></div><div style="font-size:12px; margin-top:8px; font-weight:600;">surface2</div></div>
+        <div><div style="height:64px; border-radius:12px; background:var(--border2);"></div><div style="font-size:12px; margin-top:8px; font-weight:600;">border</div></div>
+        <div><div style="height:64px; border-radius:12px; background:var(--ink2);"></div><div style="font-size:12px; margin-top:8px; font-weight:600;">ink2</div></div>
+        <div><div style="height:64px; border-radius:12px; background:var(--ink);"></div><div style="font-size:12px; margin-top:8px; font-weight:600;">ink</div></div>
+      </div>
+    </section>
+
+    <!-- ===================== 02 TYPE ===================== -->
+    <section style="padding:60px 0; border-top:1px solid var(--border);">
+      <div style="display:flex; align-items:baseline; gap:16px; margin-bottom:36px;">
+        <span style="font-size:13px; font-weight:700; color:var(--muted); letter-spacing:0.1em;">02</span>
+        <h2 style="font-weight:800; font-size:40px; margin:0; letter-spacing:-0.025em;">Typography</h2>
+        <span style="font-size:15px; color:var(--muted); margin-left:8px;">Hanken Grotesk — one family, hierarchy from size &amp; weight</span>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:26px; border-radius:20px; border:1px solid var(--border); background:var(--surface); padding:36px 40px; box-shadow:var(--shadow-sm);">
+        <div style="display:flex; align-items:baseline; gap:20px; flex-wrap:wrap;"><span style="font-size:12px; font-weight:700; color:var(--muted); width:120px; letter-spacing:0.08em;">DISPLAY / 76</span><span style="font-size:60px; font-weight:800; letter-spacing:-0.035em; line-height:1;">What can you cook?</span></div>
+        <div style="display:flex; align-items:baseline; gap:20px; flex-wrap:wrap;"><span style="font-size:12px; font-weight:700; color:var(--muted); width:120px; letter-spacing:0.08em;">H2 / 40</span><span style="font-size:40px; font-weight:800; letter-spacing:-0.025em;">Your 7-day plan</span></div>
+        <div style="display:flex; align-items:baseline; gap:20px; flex-wrap:wrap;"><span style="font-size:12px; font-weight:700; color:var(--muted); width:120px; letter-spacing:0.08em;">H3 / 22</span><span style="font-size:22px; font-weight:700; letter-spacing:-0.01em;">Egusi Soup with Pounded Yam</span></div>
+        <div style="display:flex; align-items:baseline; gap:20px; flex-wrap:wrap;"><span style="font-size:12px; font-weight:700; color:var(--muted); width:120px; letter-spacing:0.08em;">BODY / 16</span><span style="font-size:16px; color:var(--ink2); max-width:52ch; line-height:1.6;">Pick the finished Nigerian dishes you can make and we arrange a balanced multi-day plan from only what you selected.</span></div>
+        <div style="display:flex; align-items:baseline; gap:20px; flex-wrap:wrap;"><span style="font-size:12px; font-weight:700; color:var(--muted); width:120px; letter-spacing:0.08em;">LABEL / 12</span><span style="font-size:12px; font-weight:700; letter-spacing:0.16em; color:var(--muted);">BREAKFAST · LUNCH · DINNER</span></div>
+      </div>
+    </section>
+
+    <!-- ===================== 03 COMPONENTS ===================== -->
+    <section style="padding:60px 0; border-top:1px solid var(--border);">
+      <div style="display:flex; align-items:baseline; gap:16px; margin-bottom:36px;">
+        <span style="font-size:13px; font-weight:700; color:var(--muted); letter-spacing:0.1em;">03</span>
+        <h2 style="font-weight:800; font-size:40px; margin:0; letter-spacing:-0.025em;">Components</h2>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(2,1fr); gap:20px;">
+
+        <!-- Buttons -->
+        <div style="border-radius:20px; border:1px solid var(--border); background:var(--surface); padding:28px; box-shadow:var(--shadow-sm);">
+          <div style="font-size:12px; font-weight:700; letter-spacing:0.14em; color:var(--muted); margin-bottom:20px;">BUTTONS</div>
+          <div style="display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
+            <button style="background:var(--orange); color:var(--orange-ink); border:none; border-radius:12px; padding:13px 22px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit;" style-hover="background:var(--orange-2);">Plan my meals</button>
+            <button style="background:transparent; color:var(--ink); border:1px solid var(--border2); border-radius:12px; padding:13px 22px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit;" style-hover="border-color:var(--ink2);">Start over</button>
+            <button style="background:transparent; color:var(--ink2); border:none; border-radius:12px; padding:13px 16px; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit;" style-hover="color:var(--ink);">Skip</button>
+            <button style="background:var(--surface2); color:var(--muted); border:1px solid var(--border); border-radius:12px; padding:13px 22px; font-size:15px; font-weight:700; cursor:not-allowed; font-family:inherit;">Disabled</button>
+          </div>
+        </div>
+
+        <!-- Tags / pills -->
+        <div style="border-radius:20px; border:1px solid var(--border); background:var(--surface); padding:28px; box-shadow:var(--shadow-sm);">
+          <div style="font-size:12px; font-weight:700; letter-spacing:0.14em; color:var(--muted); margin-bottom:20px;">TAGS &amp; CATEGORY PILLS</div>
+          <div style="display:flex; flex-wrap:wrap; gap:10px;">
+            <span style="font-size:12px; font-weight:700; padding:6px 12px; border-radius:999px; background:var(--orange-soft); color:var(--orange);">Soups</span>
+            <span style="font-size:12px; font-weight:700; padding:6px 12px; border-radius:999px; background:var(--purple-soft); color:var(--purple);">Swallows</span>
+            <span style="font-size:12px; font-weight:700; padding:6px 12px; border-radius:999px; background:var(--green-soft); color:var(--green);">Carbs</span>
+            <span style="font-size:12px; font-weight:700; padding:6px 12px; border-radius:999px; background:var(--blue-soft); color:var(--blue);">Protein</span>
+            <span style="font-size:12px; font-weight:700; padding:6px 12px; border-radius:999px; background:var(--surface2); color:var(--ink2); border:1px solid var(--border);">Fruits</span>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:16px;">
+            <span style="font-size:12px; font-weight:700; padding:6px 12px; border-radius:8px; background:var(--surface2); color:var(--ink2); border:1px solid var(--border); white-space:nowrap;">450 kcal</span>
+            <span style="font-size:12px; font-weight:700; padding:6px 12px; border-radius:8px; background:var(--green-soft); color:var(--green);">32g protein</span>
+          </div>
+        </div>
+
+        <!-- Toggle + duration -->
+        <div style="border-radius:20px; border:1px solid var(--border); background:var(--surface); padding:28px; box-shadow:var(--shadow-sm);">
+          <div style="font-size:12px; font-weight:700; letter-spacing:0.14em; color:var(--muted); margin-bottom:20px;">SWITCH &amp; SEGMENTED</div>
+          <div style="display:flex; align-items:center; gap:14px; margin-bottom:22px;">
+            <div style="width:46px; height:27px; border-radius:999px; background:var(--orange); position:relative;">
+              <div style="position:absolute; width:21px; height:21px; border-radius:50%; background:#fff; top:3px; right:3px; box-shadow:0 1px 3px rgba(0,0,0,0.3);"></div>
+            </div>
+            <span style="font-size:15px; font-weight:600;">Include a fasting day</span>
+          </div>
+          <div style="display:inline-flex; gap:4px; background:var(--surface2); border:1px solid var(--border); border-radius:12px; padding:4px;">
+            <button style="border:none; background:var(--orange); color:var(--orange-ink); border-radius:9px; padding:9px 16px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit;">3</button>
+            <button style="border:none; background:transparent; color:var(--ink2); border-radius:9px; padding:9px 16px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit;">5</button>
+            <button style="border:none; background:transparent; color:var(--ink2); border-radius:9px; padding:9px 16px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit;">7</button>
+            <button style="border:none; background:transparent; color:var(--muted); border-radius:9px; padding:9px 16px; font-size:14px; font-weight:700; cursor:pointer; font-family:inherit;">14</button>
+          </div>
+        </div>
+
+        <!-- Input -->
+        <div style="border-radius:20px; border:1px solid var(--border); background:var(--surface); padding:28px; box-shadow:var(--shadow-sm);">
+          <div style="font-size:12px; font-weight:700; letter-spacing:0.14em; color:var(--muted); margin-bottom:20px;">SEARCH FIELD</div>
+          <div style="display:flex; align-items:center; gap:10px; background:var(--bg); border:1px solid var(--border2); border-radius:12px; padding:13px 16px;">
+            <div style="width:15px; height:15px; border-radius:50%; border:2px solid var(--muted); position:relative;"><div style="position:absolute; width:6px; height:2px; background:var(--muted); transform:rotate(45deg); bottom:-2px; right:-3px;"></div></div>
+            <span style="font-size:15px; color:var(--muted);">Search dishes — jollof, egusi, dodo…</span>
+          </div>
+          <div style="font-size:13px; color:var(--muted); margin-top:12px;">Focus ring uses <span style="color:var(--orange); font-weight:700;">orange</span> at 2px.</div>
+        </div>
+
+        <!-- Food card -->
+        <div style="border-radius:20px; border:1px solid var(--border); background:var(--surface); padding:28px; box-shadow:var(--shadow-sm);">
+          <div style="font-size:12px; font-weight:700; letter-spacing:0.14em; color:var(--muted); margin-bottom:20px;">FOOD CARD</div>
+          <div style="display:flex; gap:16px;">
+            <div style="width:150px; border-radius:16px; overflow:hidden; border:2px solid var(--orange); position:relative; background:var(--surface2);">
+              <div style="height:110px; background:repeating-linear-gradient(45deg, var(--surface2), var(--surface2) 9px, var(--bg) 9px, var(--bg) 18px); display:flex; align-items:flex-end; padding:8px;"><span style="font-size:9px; font-family:ui-monospace,monospace; color:var(--muted);">jollof.jpg</span></div>
+              <div style="position:absolute; top:8px; right:8px; width:22px; height:22px; border-radius:50%; background:var(--orange); color:var(--orange-ink); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800;">✓</div>
+              <div style="padding:11px 12px;"><div style="font-size:14px; font-weight:700;">Jollof Rice</div><span style="font-size:11px; font-weight:700; color:var(--green); ">carb</span></div>
+            </div>
+            <div style="width:150px; border-radius:16px; overflow:hidden; border:1px solid var(--border); background:var(--surface2);">
+              <div style="height:110px; background:repeating-linear-gradient(45deg, var(--surface2), var(--surface2) 9px, var(--bg) 9px, var(--bg) 18px); display:flex; align-items:flex-end; padding:8px;"><span style="font-size:9px; font-family:ui-monospace,monospace; color:var(--muted);">egusi.jpg</span></div>
+              <div style="padding:11px 12px;"><div style="font-size:14px; font-weight:700;">Egusi Soup</div><span style="font-size:11px; font-weight:700; color:var(--orange);">soup</span></div>
+            </div>
+          </div>
+          <div style="font-size:13px; color:var(--muted); margin-top:14px;">Selected = orange border + check. Idle = hairline border.</div>
+        </div>
+
+        <!-- Generative loader -->
+        <div style="border-radius:20px; border:1px solid var(--border); background:var(--bg2); padding:28px; box-shadow:var(--shadow-sm); overflow:hidden; position:relative;">
+          <div style="font-size:12px; font-weight:700; letter-spacing:0.14em; color:var(--muted); margin-bottom:20px;">GENERATIVE LOADER</div>
+          <div style="display:flex; align-items:center; justify-content:center; height:150px; position:relative;">
+            <div style="position:absolute; width:120px; height:120px; border-radius:50%; filter:blur(28px); opacity:0.55; background:var(--orange); animation:pulse 3s ease-in-out infinite;"></div>
+            <div style="position:absolute; width:90px; height:90px; border-radius:50%; filter:blur(24px); opacity:0.3; background:var(--purple); animation:pulse 3s ease-in-out infinite; animation-delay:1s;"></div>
+            <div style="position:relative; width:64px; height:64px; border-radius:50%; border:3px solid var(--border2); border-top-color:var(--orange); animation:spin 1s linear infinite;"></div>
+          </div>
+          <div style="text-align:center; font-size:15px; font-weight:700; margin-top:8px;">Building your meal plan…</div>
+        </div>
+
+      </div>
+    </section>
+
+    <footer style="padding:48px 0 80px; border-top:1px solid var(--border); color:var(--muted); font-size:14px;">
+      NaijaPlate design system · orange-led, editorial, dual-theme · <span style="color:var(--ink2);">The full app is built on these tokens.</span>
+    </footer>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { theme: 'dark' };
+  renderVals() {
+    const theme = this.state.theme;
+    return {
+      theme,
+      themeLabel: theme === 'dark' ? 'Dark' : 'Light',
+      toggleTheme: () => this.setState(s => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
+    };
+  }
+}
+</script>
+</body>
+</html>

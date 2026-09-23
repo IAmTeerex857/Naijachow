@@ -1,33 +1,45 @@
 import NutritionStrip from './NutritionStrip'
 import DayCard from './DayCard'
-import PremiumBanner from './PremiumBanner'
 
-export default function PlanScreen({ plan, duration, onStartOver, onSwap, swapping }) {
+export default function PlanScreen({ plan, duration, onStartOver, onSwap, swapping, onSave, justSaved, error }) {
   const days = plan.days || []
+
   return (
-    <>
-      <div className="results-header">
-        <h2>Your {duration}-Day Plan</h2>
-        <div className="results-actions">
-          <button className="btn btn-outline" onClick={onStartOver}>
-            Start Over
+    <div className="screen">
+      <div className="plan-head">
+        <div>
+          <div className="eyebrow">STEP 03 · YOUR PLAN</div>
+          <h1>Your {duration}-day plan</h1>
+        </div>
+        <div className="plan-actions">
+          {justSaved && <span className="saved-flag">✓ Saved</span>}
+          <button className="btn btn-outline btn-sm" onClick={onStartOver}>
+            Start over
           </button>
-          <button className="btn btn-jade" onClick={() => window.print()}>
-            🖨 Print
+          <button className="btn btn-outline btn-sm" onClick={() => window.print()}>
+            Print
+          </button>
+          <button className="btn btn-orange btn-sm" onClick={onSave}>
+            Save plan
           </button>
         </div>
       </div>
 
-      <div className="plan-body">
-        <NutritionStrip plan={plan} />
+      {error && <div className="notice warn" role="alert">{error.message}</div>}
 
-        {plan.missing_ingredients && plan.missing_ingredients.length > 0 && (
-          <div className="missing">
-            <strong>Add these to boost your nutrition:</strong>
+      {plan.missing_ingredients?.length > 0 && (
+        <div className="notice warn">
+          <span className="mark" aria-hidden="true" />
+          <span>
+            <strong>Add these to boost your nutrition:</strong>{' '}
             {plan.missing_ingredients.join(' · ')}
-          </div>
-        )}
+          </span>
+        </div>
+      )}
 
+      <NutritionStrip days={days} />
+
+      <div className="days">
         {days.map((day, i) => (
           <DayCard
             key={i}
@@ -37,9 +49,7 @@ export default function PlanScreen({ plan, duration, onStartOver, onSwap, swappi
             swappingType={swapping.dayIndex === i ? swapping.type : null}
           />
         ))}
-
-        {duration <= 7 && <PremiumBanner />}
       </div>
-    </>
+    </div>
   )
 }
