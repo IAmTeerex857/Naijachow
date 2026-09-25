@@ -1,6 +1,9 @@
+import { lazy, Suspense } from 'react'
 import { FOODS } from '../data/foods'
 import { fetchFoodImage } from '../lib/api'
 import ImageTile from './ImageTile'
+
+const HeroLiquid = lazy(() => import('./HeroLiquid'))
 
 /* A fixed, recognisable spread across the categories — not a random sample, so
    the home page looks the same on every visit. */
@@ -32,7 +35,9 @@ export default function HomeScreen({ onStart, onSeeSaved }) {
   return (
     <div style={{ animation: 'rise .5s ease both' }}>
       <section className="hero">
-        <div className="hero-orb" aria-hidden="true" />
+        <Suspense fallback={<div className="hero-liquid-fallback" aria-hidden="true" />}>
+          <HeroLiquid />
+        </Suspense>
         <div className="hero-copy">
           <div className="badge">
             <i aria-hidden="true" />

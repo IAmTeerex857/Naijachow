@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import {
   AuthenticationRequiredError,
   claimGeneratedPlan,
@@ -23,8 +23,9 @@ import PreferencesScreen from './components/PreferencesScreen'
 import ImportScreen from './components/ImportScreen'
 import SavedPlansScreen from './components/SavedPlansScreen'
 import AccountScreen from './components/AccountScreen'
-import PremiumScreen from './components/PremiumScreen'
 import { haptic } from './lib/haptics'
+
+const PremiumScreen = lazy(() => import('./components/PremiumScreen'))
 
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner']
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -533,18 +534,21 @@ export default function App() {
       )}
 
       {screen === 'premium' && (
-        <PremiumScreen
-          user={user}
-          status={subscription}
-          loading={subscriptionLoading}
-          actionLoading={subscriptionActionLoading}
-          message={subscriptionMessage}
-          onCheckout={handleSubscribe}
-          onSignIn={handleSubscribe}
-          onCancel={handleCancelSubscription}
-          onRefresh={refreshSubscription}
-          onPlan={() => go('preferences')}
-        />
+        <Suspense fallback={<div className="screen" aria-busy="true" />}>
+          <PremiumScreen
+            user={user}
+            status={subscription}
+            loading={subscriptionLoading}
+            actionLoading={subscriptionActionLoading}
+            message={subscriptionMessage}
+            onCheckout={handleSubscribe}
+            onSignIn={handleSubscribe}
+            onCancel={handleCancelSubscription}
+            onRefresh={refreshSubscription}
+            onPlan={() => go('preferences')}
+            dark={dark}
+          />
+        </Suspense>
       )}
     </AppShell>
   )

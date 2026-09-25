@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { ThinkingOrb } from 'thinking-orbs'
 import { accessToken } from '../lib/supabase'
 import { haptic } from '../lib/haptics'
 import RecipeEditor from './RecipeEditor'
@@ -125,6 +126,9 @@ export default function ImportScreen() {
               <p>{item.source_url}</p>
             </div>
             <span className={`import-status status-${item.processing_status}`}>
+              {['queued', 'running'].includes(item.processing_status) && (
+                <ThinkingOrb state="searching" size={20} theme="auto" aria-hidden="true" />
+              )}
               {item.processing_status === 'succeeded'
                 ? item.review_status === 'pending' ? 'Ready to review' : item.review_status.replaceAll('_', ' ')
                 : item.current_step || item.processing_status}

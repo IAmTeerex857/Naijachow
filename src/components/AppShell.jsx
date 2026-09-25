@@ -1,7 +1,11 @@
+import { lazy, Suspense } from 'react'
+
 /* Navigation shell: a persistent side rail on desktop, a bottom tab bar on
    mobile, per the two design files. Both drive the same `screen` state — the
    mobile mock's phone frame is presentation of the mock, not part of the app,
    so this is one responsive layout rather than two builds. */
+
+const MetalUpgradeButton = lazy(() => import('./MetalUpgradeButton'))
 
 const NAV = [
   { key: 'home', label: 'Home', glyph: 'round' },
@@ -62,11 +66,13 @@ export default function AppShell({ screen, onNavigate, dark, onToggleTheme, user
         </nav>
 
         <div className="railfoot">
-          <div className="upsell">
+          {screen !== 'premium' && <div className="upsell">
             <div className="upsell-tag">FREE PLAN</div>
             <p>Up to 7-day plans. Upgrade for 14 &amp; 30-day.</p>
-            <button onClick={() => onNavigate('premium')}>Upgrade →</button>
-          </div>
+            <Suspense fallback={<button onClick={() => onNavigate('premium')}>Upgrade →</button>}>
+              <MetalUpgradeButton dark={dark} onClick={() => onNavigate('premium')} />
+            </Suspense>
+          </div>}
           <ThemeButton dark={dark} onToggle={onToggleTheme} />
           {user && <button className="linkbtn" onClick={onAccount}>Account</button>}
           {user && <button className="linkbtn" onClick={onSignOut}>Sign out</button>}
