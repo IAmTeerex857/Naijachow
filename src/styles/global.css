@@ -177,10 +177,10 @@ input {
 .navbtn:hover {
   color: var(--ink);
 }
-.navbtn.active {
-  background: color-mix(in srgb, var(--orange) 16%, var(--surface));
+.navbtn.active,
+.navbtn[data-active='true'] {
+  background: color-mix(in srgb, var(--orange) 22%, var(--surface));
   color: var(--orange);
-  box-shadow: inset 3px 0 var(--orange);
 }
 .railfoot {
   margin-top: auto;

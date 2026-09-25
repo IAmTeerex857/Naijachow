@@ -13,7 +13,7 @@ const POPULAR = POPULAR_IDS.map((id) => FOODS.find((f) => f.id === id)).filter(B
 
 const STEPS = [
   {
-    avatar: 'square',
+    avatar: 'star',
     state: 'default',
     n: 'STEP 01',
     title: 'Select your dishes',

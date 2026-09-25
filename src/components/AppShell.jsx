@@ -57,6 +57,7 @@ export default function AppShell({ screen, onNavigate, dark, onToggleTheme, user
             <button
               key={item.key}
               className={`navbtn ${isActive(item.key, screen) ? 'active' : ''}`}
+              data-active={isActive(item.key, screen) ? 'true' : 'false'}
               onClick={() => onNavigate(item.key)}
               aria-current={isActive(item.key, screen) ? 'page' : undefined}
             >
