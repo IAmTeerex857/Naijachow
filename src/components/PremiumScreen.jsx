@@ -1,4 +1,5 @@
 import { BorderBeam } from 'border-beam'
+import { useReducedMotion } from '../lib/useReducedMotion'
 
 function formatDate(value) {
   if (!value) return null
@@ -18,6 +19,7 @@ export default function PremiumScreen({
   onPlan,
   dark,
 }) {
+  const reducedMotion = useReducedMotion()
   const subscription = status?.subscription
   const endDate = formatDate(subscription?.current_period_end)
   const ending = status?.active && subscription?.cancel_at_period_end
@@ -31,10 +33,11 @@ export default function PremiumScreen({
 
         <BorderBeam
           className="premium-beam"
-          size="pulse-outside"
+          size="md"
           colorVariant="sunset"
           theme={dark ? 'dark' : 'light'}
-          strength={0.5}
+          strength={0.82}
+          active={!reducedMotion}
         >
           <div className="card premium-card">
             <div className="premium-price"><strong>₦2,500</strong><span>/ month</span></div>
