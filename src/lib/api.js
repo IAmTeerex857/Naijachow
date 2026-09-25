@@ -120,7 +120,7 @@ export async function claimGeneratedPlan() {
 
 export async function getSubscriptionStatus() {
   const headers = await authenticatedHeaders()
-  const res = await fetch('/api/subscription-status', { headers })
+  const res = await fetch('/api/subscription', { headers })
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw new Error(data.error || 'Could not load subscription status.')
   return data
@@ -128,7 +128,11 @@ export async function getSubscriptionStatus() {
 
 export async function createSubscriptionCheckout() {
   const headers = await authenticatedHeaders()
-  const res = await fetch('/api/subscription-checkout', { method: 'POST', headers })
+  const res = await fetch('/api/subscription', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ action: 'checkout' }),
+  })
   const data = await res.json().catch(() => ({}))
   if (!res.ok || !data.checkout_url) throw new Error(data.error || 'Could not start checkout.')
   return data.checkout_url
@@ -136,7 +140,11 @@ export async function createSubscriptionCheckout() {
 
 export async function cancelSubscription() {
   const headers = await authenticatedHeaders()
-  const res = await fetch('/api/subscription-cancel', { method: 'POST', headers })
+  const res = await fetch('/api/subscription', {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ action: 'cancel' }),
+  })
   const data = await res.json().catch(() => ({}))
   if (!res.ok) throw new Error(data.error || 'Could not cancel the subscription.')
   return data
