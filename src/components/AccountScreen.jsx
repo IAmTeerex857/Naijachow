@@ -84,7 +84,7 @@ export default function AccountScreen({ user, onDeleted, onEditPreferences }) {
 
         <article className="answer-card danger-card">
           <h2>Delete account</h2>
-          <p>This permanently removes your account, private imports, recipes, health profile, and saved plans.</p>
+          <p>This permanently removes your account, private imports, recipes, health profile, and saved plans. Any Premium subscription is cancelled immediately.</p>
           <label className="answer-field">
             Type DELETE to confirm
             <input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} />

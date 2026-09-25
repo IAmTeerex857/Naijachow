@@ -5,6 +5,9 @@ import {
   generatePlan,
   swapMeal,
   PremiumRequiredError,
+  cancelSubscription,
+  createSubscriptionCheckout,
+  getSubscriptionStatus,
 } from './lib/api'
 import { useTheme } from './lib/useTheme'
 import { useAuth } from './lib/useAuth'
@@ -20,6 +23,7 @@ import PreferencesScreen from './components/PreferencesScreen'
 import ImportScreen from './components/ImportScreen'
 import SavedPlansScreen from './components/SavedPlansScreen'
 import AccountScreen from './components/AccountScreen'
+import PremiumScreen from './components/PremiumScreen'
 import { haptic } from './lib/haptics'
 
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner']
@@ -40,7 +44,18 @@ export default function App() {
   const { user } = useAuth()
 
   // 'home' | 'preferences' | 'select' | 'loading' | 'auth' | 'plan' | 'saved' | 'vendor' | 'premium'
-  const [screen, setScreen] = useState('home')
+  const [screen, setScreen] = useState(
+    () => new URLSearchParams(window.location.search).has('subscription') ? 'premium' : 'home'
+  )
+  const [subscription, setSubscription] = useState(null)
+  const [subscriptionLoading, setSubscriptionLoading] = useState(false)
+  const [subscriptionActionLoading, setSubscriptionActionLoading] = useState(false)
+  const [subscriptionMessage, setSubscriptionMessage] = useState(() => {
+    const result = new URLSearchParams(window.location.search).get('subscription')
+    if (result === 'success') return 'Checkout completed. Premium unlocks after webhook confirmation.'
+    if (result === 'cancelled') return 'Checkout was cancelled. You have not been charged.'
+    return ''
+  })
 
   // Select-screen state
   const [selected, setSelected] = useState(() => new Set())
@@ -63,6 +78,10 @@ export default function App() {
   )
   const [justSaved, setJustSaved] = useState(false)
   const claimStarted = useRef(false)
+  const subscriptionRequestRef = useRef(0)
+  const subscriptionUserIdRef = useRef(user?.id || null)
+  const previousSubscriptionUserRef = useRef(null)
+  subscriptionUserIdRef.current = user?.id || null
   const generationRef = useRef({ id: 0, controller: null })
   const swapLockRef = useRef(false)
   const planVersionRef = useRef(0)
@@ -76,6 +95,29 @@ export default function App() {
     if (!user || !planWaitingForAuth) return
     handleClaimPlan()
   }, [user, planWaitingForAuth])
+
+  useEffect(() => {
+    const previousUserId = previousSubscriptionUserRef.current
+    const nextUserId = user?.id || null
+    previousSubscriptionUserRef.current = nextUserId
+    if (previousUserId && previousUserId !== nextUserId) {
+      setSubscription(null)
+      setSubscriptionMessage('')
+    }
+    if (!user) {
+      subscriptionRequestRef.current += 1
+      setSubscription(null)
+      setSubscriptionLoading(false)
+      return
+    }
+    refreshSubscription(user.id)
+    return () => { subscriptionRequestRef.current += 1 }
+  }, [user])
+
+  useEffect(() => {
+    if (!new URLSearchParams(window.location.search).has('subscription')) return
+    window.history.replaceState({}, '', `${window.location.pathname}${window.location.hash}`)
+  }, [])
 
   useEffect(() => {
     const previousUserId = previousUserIdRef.current
@@ -113,7 +155,7 @@ export default function App() {
   useEffect(() => {
     if (!user || planWaitingForAuth) return
     const destination = localStorage.getItem('np-auth-return')
-    if (destination && ['imports', 'saved', 'account'].includes(destination)) {
+    if (destination && ['imports', 'saved', 'account', 'premium'].includes(destination)) {
       localStorage.removeItem('np-auth-return')
       setAuthReturn('home')
       go(destination)
@@ -141,6 +183,57 @@ export default function App() {
       return
     }
     go(next)
+  }
+
+  async function refreshSubscription(expectedUserId = subscriptionUserIdRef.current) {
+    if (!expectedUserId) return
+    const requestId = subscriptionRequestRef.current + 1
+    subscriptionRequestRef.current = requestId
+    setSubscriptionLoading(true)
+    try {
+      const nextSubscription = await getSubscriptionStatus()
+      if (subscriptionRequestRef.current === requestId && subscriptionUserIdRef.current === expectedUserId) {
+        setSubscription(nextSubscription)
+      }
+    } catch (statusError) {
+      if (subscriptionRequestRef.current === requestId && subscriptionUserIdRef.current === expectedUserId) {
+        setSubscriptionMessage(statusError.message)
+      }
+    } finally {
+      if (subscriptionRequestRef.current === requestId && subscriptionUserIdRef.current === expectedUserId) {
+        setSubscriptionLoading(false)
+      }
+    }
+  }
+
+  async function handleSubscribe() {
+    if (!user) {
+      setAuthReturn('premium')
+      localStorage.setItem('np-auth-return', 'premium')
+      go('auth')
+      return
+    }
+    setSubscriptionActionLoading(true)
+    setSubscriptionMessage('')
+    try {
+      window.location.assign(await createSubscriptionCheckout())
+    } catch (checkoutError) {
+      setSubscriptionMessage(checkoutError.message)
+      setSubscriptionActionLoading(false)
+    }
+  }
+
+  async function handleCancelSubscription() {
+    setSubscriptionActionLoading(true)
+    try {
+      const result = await cancelSubscription()
+      setSubscriptionMessage(result.message)
+      await refreshSubscription()
+    } catch (cancelError) {
+      setSubscriptionMessage(cancelError.message)
+    } finally {
+      setSubscriptionActionLoading(false)
+    }
   }
 
   async function handleSignOut() {
@@ -375,6 +468,7 @@ export default function App() {
           setDuration={chooseDuration}
           onGenerate={handleGenerate}
           onPremium={() => go('premium')}
+          premiumActive={Boolean(subscription?.active)}
           error={error}
           signedIn={Boolean(user)}
           onTurnstileToken={setTurnstileToken}
@@ -439,11 +533,17 @@ export default function App() {
       )}
 
       {screen === 'premium' && (
-        <ComingSoon
-          eyebrow="PREMIUM"
-          title="Plan further. Eat better."
-          body="14- and 30-day plans, full nutrition reports and smart substitutions — ₦2,500/month. Payments aren't live yet, so Premium can't be bought today."
-          onStart={() => go('select')}
+        <PremiumScreen
+          user={user}
+          status={subscription}
+          loading={subscriptionLoading}
+          actionLoading={subscriptionActionLoading}
+          message={subscriptionMessage}
+          onCheckout={handleSubscribe}
+          onSignIn={handleSubscribe}
+          onCancel={handleCancelSubscription}
+          onRefresh={refreshSubscription}
+          onPlan={() => go('preferences')}
         />
       )}
     </AppShell>

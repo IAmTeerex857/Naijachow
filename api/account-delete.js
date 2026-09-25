@@ -1,6 +1,7 @@
 import { authenticatedUser, supabaseAdmin } from '../server/supabaseAdmin.js'
 import { parseJsonBody, requireMethod, sendJson } from '../server/http.js'
 import { runs } from '@trigger.dev/sdk'
+import { cancelBachsSubscriptionImmediately } from '../server/bachs.js'
 
 export default async function handler(req, res) {
   if (!requireMethod(req, res, ['DELETE'])) return
@@ -12,6 +13,7 @@ export default async function handler(req, res) {
   }
 
   const db = supabaseAdmin()
+  let deletionStarted = false
   const { data: runningImports } = await db
     .from('social_imports')
     .select('trigger_run_id')
@@ -35,8 +37,28 @@ export default async function handler(req, res) {
     if (storageError) return sendJson(res, 500, { error: 'Could not remove private files.' })
   }
 
+  try {
+    const { data: subscriptions, error: subscriptionError } = await db.rpc('begin_bachs_account_deletion', {
+      p_user_id: user.id,
+    })
+    if (subscriptionError) throw subscriptionError
+    deletionStarted = true
+    await Promise.all((subscriptions || []).map((subscription) =>
+      cancelBachsSubscriptionImmediately(subscription.provider_subscription_id, 'Customer deleted account')
+    ))
+  } catch (error) {
+    if (deletionStarted) {
+      await db.rpc('abort_bachs_account_deletion', { p_user_id: user.id }).catch(() => {})
+    }
+    console.error('[NaijaPlate] subscription cancellation before account deletion failed:', error.message)
+    return sendJson(res, 502, { error: 'Could not stop subscription billing. Your account was not deleted.' })
+  }
+
   const { error } = await db.auth.admin.deleteUser(user.id)
   if (error) {
+    if (deletionStarted) {
+      await db.rpc('abort_bachs_account_deletion', { p_user_id: user.id }).catch(() => {})
+    }
     console.error('[NaijaPlate] account deletion failed:', error.message)
     return sendJson(res, 500, { error: 'Could not delete the account.' })
   }

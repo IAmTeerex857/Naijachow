@@ -1,7 +1,4 @@
-/* Stand-in for the screens designed but not yet built (Saved Plans, Vendors,
-   Premium). They are in the nav because the shell is designed around five
-   destinations; this says plainly that they are on the way rather than
-   pretending with sample content. */
+/* Stand-in for navigation destinations that are not available yet. */
 export default function ComingSoon({ eyebrow, title, body, onStart }) {
   return (
     <div className="screen">

@@ -118,6 +118,30 @@ export async function claimGeneratedPlan() {
   return { ...data.plan, planId: data.planId, selectedIds: data.selectedIds || [] }
 }
 
+export async function getSubscriptionStatus() {
+  const headers = await authenticatedHeaders()
+  const res = await fetch('/api/subscription-status', { headers })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.error || 'Could not load subscription status.')
+  return data
+}
+
+export async function createSubscriptionCheckout() {
+  const headers = await authenticatedHeaders()
+  const res = await fetch('/api/subscription-checkout', { method: 'POST', headers })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok || !data.checkout_url) throw new Error(data.error || 'Could not start checkout.')
+  return data.checkout_url
+}
+
+export async function cancelSubscription() {
+  const headers = await authenticatedHeaders()
+  const res = await fetch('/api/subscription-cancel', { method: 'POST', headers })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.error || 'Could not cancel the subscription.')
+  return data
+}
+
 /* --- Image fetching -------------------------------------------------------
    Always resolves (never throws) → { url, credit, source }. On any failure
    url is null and the caller shows the stripe placeholder.

@@ -22,6 +22,7 @@ export default function SelectScreen({
   setDuration,
   onGenerate,
   onPremium,
+  premiumActive,
   error,
   signedIn,
   onTurnstileToken,
@@ -167,7 +168,7 @@ export default function SelectScreen({
                 <button
                   key={d.n}
                   className={`durbtn ${duration === d.n ? 'active' : ''}`}
-                  onClick={() => (d.premium ? onPremium() : setDuration(d.n))}
+                  onClick={() => (d.premium && !premiumActive ? onPremium() : setDuration(d.n))}
                   aria-pressed={duration === d.n}
                 >
                   <span className="n">{d.n}</span>

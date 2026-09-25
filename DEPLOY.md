@@ -34,11 +34,13 @@ Connect Trigger.dev's GitHub integration after the repository is connected to Ve
 
 ## 4. Connect Vercel
 
-1. Import `Adetola19/Food-App-3` in Vercel.
+1. Import `IAmTeerex857/Naijachow` in Vercel.
 2. Select the Vite framework preset.
 3. Keep build command `npm run build` and output directory `dist`.
 4. Add every variable from `.env.example` with the appropriate environment scope.
 5. Deploy once and copy the production URL into `APP_URL` and Supabase Auth settings.
+
+Set `APP_URL=https://naijachow.vercel.app`, add the live `BACHS_SECRET_KEY`, `BACHS_WEBHOOK_SECRET`, and optional Bachs overrides, then register `https://naijachow.vercel.app/api/bachs-webhook` for `customer.subscription.created`, `customer.subscription.updated`, and `customer.subscription.deleted`. Apply and review the subscription migration before enabling checkout.
 
 Pushes to `main` will deploy production. Pull requests will receive preview deployments.
 
@@ -53,8 +55,7 @@ npm run check
 
 `npx vercel build` requires the local repository to be linked with `vercel link` or authenticated through `VERCEL_TOKEN`.
 
-## 6. Deferred integrations
+## 6. Deferred integration
 
-- Bachs monthly subscriptions and webhook verification
 - Resend transactional email templates
 - A durable global request quota beyond the one-use guest database record

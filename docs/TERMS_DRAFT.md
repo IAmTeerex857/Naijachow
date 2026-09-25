@@ -28,6 +28,10 @@ Users may not upload malicious content, infringe intellectual-property rights, s
 
 Features relying on third-party services may be delayed, unavailable, or changed. We may modify or discontinue features where reasonably necessary.
 
+## Premium Billing
+
+Premium costs ₦2,500 per month and renews automatically through Bachs until cancelled. A cancellation requested for period end stops the next renewal while access continues through the current paid period. Refund eligibility is described in the separate refund policy.
+
 ## Liability
 
 To the extent permitted by applicable law, the service is provided without guarantees of uninterrupted availability, nutritional accuracy, medical suitability, or fitness for a particular purpose.

@@ -12,10 +12,34 @@ import {
 import { verifyTurnstile } from '../server/turnstile.js'
 import { consumeRateLimit, releaseRateLimit } from '../server/rateLimit.js'
 import { loadApprovedComboCandidates } from '../server/approvedCombos.js'
+import { subscriptionStatus } from '../server/bachs.js'
+import { buildSchedule, chunkSchedule } from '../server/planSchedule.js'
 
 const MAX_FREE_DAYS = 7
-const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner']
+
+function generationPrompt(schedule, candidates, preferences) {
+  return `Build this exact schedule: ${JSON.stringify(schedule)}.
+For each non-fasting meal, select one candidate_key from the corresponding approved list below. Never create a new key. Prefer variety and do not repeat a candidate more than twice unless the list leaves no alternative.
+
+Approved breakfast candidates: ${JSON.stringify(candidates.breakfast)}
+Approved lunch candidates: ${JSON.stringify(candidates.lunch)}
+Approved dinner candidates: ${JSON.stringify(candidates.dinner)}
+
+User planning context: ${JSON.stringify({
+    goal: preferences.goal,
+    conditions: preferences.conditions,
+    foodsToAvoid: preferences.foodsToAvoid,
+    clinicianInstructions: preferences.clinicianInstructions,
+    householdSize: preferences.householdSize,
+    budgetLevel: preferences.budgetLevel,
+    maxCookingMinutes: preferences.maxCookingMinutes,
+  })}
+
+Treat stated allergies, avoidances, and clinician instructions as hard constraints. Do not diagnose, promise treatment, or add medical claims. If an approved candidate conflicts with a hard constraint, do not select it.
+
+For fasting days, return null for breakfast, lunch, and dinner. Nutrition values are approximate values for one normal serving.`
+}
 
 export default async function handler(req, res) {
   if (!requireMethod(req, res, ['POST'])) return
@@ -29,20 +53,9 @@ export default async function handler(req, res) {
 
   const selectedFoods = resolveSelectedFoods(input.selectedIds)
   if (!selectedFoods) return sendJson(res, 400, { error: 'Select at least three valid dishes.' })
-  if (input.selectedDays > MAX_FREE_DAYS) {
-    return sendJson(res, 402, {
-      error: `${input.selectedDays}-day plans are a premium feature.`,
-      premium_required: true,
-      max_free_days: MAX_FREE_DAYS,
-    })
-  }
-
   let rawCandidates = candidateMap(input.selectedIds)
   try {
-    rawCandidates = mergeCandidateMaps(
-      rawCandidates,
-      await loadApprovedComboCandidates(input.selectedIds)
-    )
+    rawCandidates = mergeCandidateMaps(rawCandidates, await loadApprovedComboCandidates(input.selectedIds))
   } catch (error) {
     console.error('[NaijaPlate] approved combo lookup failed:', error.message)
   }
@@ -58,12 +71,21 @@ export default async function handler(req, res) {
       error: `Your selection cannot make a realistic ${unavailable.join(', ')}. Add a breakfast food, or pair a carb with protein or soup with swallow.`,
     })
   }
-
   let user
   let guest
   let guestRateIdentity
   try {
     user = await authenticatedUser(req)
+    if (input.selectedDays > MAX_FREE_DAYS) {
+      const premium = user && (await subscriptionStatus(user.id)).active
+      if (!premium) {
+        return sendJson(res, 402, {
+          error: `${input.selectedDays}-day plans require an active Premium subscription.`,
+          premium_required: true,
+          max_free_days: MAX_FREE_DAYS,
+        })
+      }
+    }
     if (!user && !(await verifyTurnstile(input.turnstileToken, clientIp(req)))) {
       return sendJson(res, 403, { error: 'Please complete the security check and try again.' })
     }
@@ -89,42 +111,24 @@ export default async function handler(req, res) {
     return sendJson(res, 503, { error: 'Could not reserve this generation. Please try again.' })
   }
 
-  const schedule = Array.from({ length: input.selectedDays }, (_, index) => ({
-    day: `Day ${index + 1} — ${WEEKDAYS[index]}`,
-    is_fasting: input.fastingDay === WEEKDAYS[index],
-  }))
-  const prompt = `Build this exact schedule: ${JSON.stringify(schedule)}.
-For each non-fasting meal, select one candidate_key from the corresponding approved list below. Never create a new key. Prefer variety and do not repeat a candidate more than twice unless the list leaves no alternative.
-
-Approved breakfast candidates: ${JSON.stringify(candidates.breakfast)}
-Approved lunch candidates: ${JSON.stringify(candidates.lunch)}
-Approved dinner candidates: ${JSON.stringify(candidates.dinner)}
-
-User planning context: ${JSON.stringify({
-    goal: input.preferences.goal,
-    conditions: input.preferences.conditions,
-    foodsToAvoid: input.preferences.foodsToAvoid,
-    clinicianInstructions: input.preferences.clinicianInstructions,
-    householdSize: input.preferences.householdSize,
-    budgetLevel: input.preferences.budgetLevel,
-    maxCookingMinutes: input.preferences.maxCookingMinutes,
-  })}
-
-Treat stated allergies, avoidances, and clinician instructions as hard constraints. Do not diagnose, promise treatment, or add medical claims. If an approved candidate conflicts with a hard constraint, do not select it.
-
-For fasting days, return null for breakfast, lunch, and dinner. Nutrition values are approximate values for one normal serving.`
+  const schedule = buildSchedule(input.selectedDays, input.fastingDay)
 
   try {
-    const raw = await generateStructuredJson({
-      prompt,
-      schemaName: 'naijaplate_meal_plan',
-      schema: MODEL_PLAN_JSON_SCHEMA,
-      maxTokens: 4000,
-    })
-    const parsed = modelPlanSchema.parse(raw)
-    if (parsed.days.length !== schedule.length) throw new Error('Wrong day count')
+    const parsedChunks = await Promise.all(chunkSchedule(schedule).map(async (scheduledDays, index) => {
+      const raw = await generateStructuredJson({
+        prompt: generationPrompt(scheduledDays, candidates, input.preferences),
+        schemaName: `naijaplate_meal_plan_${index + 1}`,
+        schema: MODEL_PLAN_JSON_SCHEMA,
+        maxTokens: 4000,
+      })
+      const parsed = modelPlanSchema.parse(raw)
+      if (parsed.days.length !== scheduledDays.length) throw new Error('Wrong chunk day count')
+      return parsed.days
+    }))
+    const generatedDays = parsedChunks.flat()
+    if (generatedDays.length !== schedule.length) throw new Error('Wrong day count')
 
-    const days = parsed.days.map((day, index) => {
+    const days = generatedDays.map((day, index) => {
       const expected = schedule[index]
       if (day.is_fasting !== expected.is_fasting) throw new Error('Invalid fasting schedule')
       const result = { day: expected.day, is_fasting: expected.is_fasting }

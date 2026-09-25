@@ -9,9 +9,10 @@ Nigerian meal planning with culturally realistic dish combinations, saved user p
 - Azure OpenAI structured output
 - Supabase Auth, Postgres, Storage, and RLS
 - Trigger.dev background jobs
+- Bachs recurring subscriptions
 - Supadata social metadata and transcripts
 
-Payments through Bachs and transactional email through Resend are intentionally deferred.
+Transactional email through Resend is intentionally deferred.
 
 ## Local setup
 
@@ -47,6 +48,10 @@ npm run trigger:deploy
 6. A signed-in user receives the plan immediately.
 7. A guest receives one generation, but must sign in by email to claim and view it.
 
+### Premium subscriptions
+
+Premium is a recurring ₦2,500/month Bachs subscription that unlocks 14- and 30-day plans. Checkout redirects never grant access: signed Bachs subscription webhooks are validated and reconciled transactionally before Premium is enabled.
+
 ### Social imports
 
 1. Signed-in user submits a public TikTok or Instagram URL.
@@ -68,7 +73,7 @@ Versioned migrations are in `supabase/migrations/` and include:
 - Persisted and saved plans
 - Private recipes and social imports
 - Curated image assets
-- Future monthly subscription records
+- Bachs subscription state and deduplicated webhook events
 
 Apply migrations through the Supabase CLI only after reviewing them against the target project.
 
@@ -83,5 +88,6 @@ The production image API reads approved Supabase Storage assets first, then the 
 - AI output is schema-validated and restricted to server-approved candidates.
 - RLS protects all user-owned records.
 - API quotas are enforced atomically in Supabase; Turnstile adds guest abuse protection when configured.
+- `BACHS_SECRET_KEY` and `BACHS_WEBHOOK_SECRET` are server-only. Configure the Bachs endpoint as `/api/bachs-webhook` for the three `customer.subscription.*` events.
 
 See `DEPLOY.md` for deployment steps and `docs/` for draft product policies.

@@ -2,7 +2,7 @@
 
 Effective date: To be confirmed
 
-This document applies when monthly Bachs subscriptions launch and requires legal review.
+This document applies to monthly Bachs subscriptions and requires legal review before publication.
 
 ## Billing
 
