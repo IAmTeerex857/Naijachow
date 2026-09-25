@@ -31,7 +31,7 @@ export default function AccountScreen({ user, onDeleted, onEditPreferences }) {
       const url = URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      link.download = 'naijaplate-data.json'
+      link.download = 'naijachow-data.json'
       link.click()
       URL.revokeObjectURL(url)
       setMessage('Your data export has downloaded.')

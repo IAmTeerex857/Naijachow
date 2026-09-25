@@ -154,7 +154,7 @@ export default function PreferencesScreen({ value, onChange, onContinue, signedI
         )}
       </footer>
       <p className="health-disclaimer">
-        NaijaPlate does not diagnose or guarantee meals are allergen-free. Confirm ingredients and follow advice from a qualified clinician.
+        Naijachow does not diagnose or guarantee meals are allergen-free. Confirm ingredients and follow advice from a qualified clinician.
       </p>
     </section>
   )

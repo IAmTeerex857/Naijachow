@@ -1,4 +1,4 @@
-# NaijaPlate Refund Policy - Draft
+# Naijachow Refund Policy - Draft
 
 Effective date: To be confirmed
 

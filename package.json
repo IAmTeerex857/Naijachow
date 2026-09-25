@@ -1,8 +1,8 @@
 {
-  "name": "naijaplate",
+  "name": "naijachow",
   "version": "2.0.0",
   "private": true,
-  "description": "NaijaPlate - Nigerian meal-planning web app",
+  "description": "Naijachow - Nigerian meal-planning web app",
   "type": "module",
   "scripts": {
     "dev": "vite",

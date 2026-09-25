@@ -1,4 +1,4 @@
-# NaijaPlate Terms of Use - Draft
+# Naijachow Terms of Use - Draft
 
 Effective date: To be confirmed
 
@@ -6,7 +6,7 @@ This document is a product draft for legal review and is not legal advice.
 
 ## Service
 
-NaijaPlate provides meal-planning, recipe organization, and social-content import tools. Meal plans, nutrition figures, health notes, recipes, availability, and preparation guidance may be incomplete or inaccurate and must be independently checked by the user.
+Naijachow provides meal-planning, recipe organization, and social-content import tools. Meal plans, nutrition figures, health notes, recipes, availability, and preparation guidance may be incomplete or inaccurate and must be independently checked by the user.
 
 ## Eligibility And Accounts
 
@@ -14,11 +14,11 @@ Users must provide accurate account information and protect access to their emai
 
 ## Health And Food Safety
 
-NaijaPlate is not a medical service. It does not diagnose, treat, prevent, or cure any condition. Users remain responsible for checking ingredients, allergens, food safety, serving sizes, and clinician instructions.
+Naijachow is not a medical service. It does not diagnose, treat, prevent, or cure any condition. Users remain responsible for checking ingredients, allergens, food safety, serving sizes, and clinician instructions.
 
 ## Imported Content
 
-Users may import only content they are permitted to access and use. Importing content does not transfer ownership. Source attribution should be retained. NaijaPlate may remove content following a valid rights-holder request or when platform rules require removal.
+Users may import only content they are permitted to access and use. Importing content does not transfer ownership. Source attribution should be retained. Naijachow may remove content following a valid rights-holder request or when platform rules require removal.
 
 ## Acceptable Use
 

@@ -93,7 +93,7 @@ export default async function handler(req, res) {
         : { status: 400, body: { error: 'Invalid subscription action.' } }
     return sendJson(res, result.status, result.body)
   } catch (error) {
-    console.error('[NaijaPlate] subscription request failed:', error.message)
+    console.error('[Naijachow] subscription request failed:', error.message)
     return sendJson(res, error.status >= 400 && error.status < 500 ? error.status : 502, {
       error: 'Could not manage your subscription. Please try again.',
     })

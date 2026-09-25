@@ -10,7 +10,7 @@ export default class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    console.error('[NaijaPlate] render error:', error, info?.componentStack)
+    console.error('[Naijachow] render error:', error, info?.componentStack)
   }
 
   render() {
@@ -26,7 +26,7 @@ export default class ErrorBoundary extends Component {
             we&apos;ll rebuild it.
           </p>
           <button className="btn btn-orange" onClick={() => window.location.reload()}>
-            Reload NaijaPlate
+            Reload Naijachow
           </button>
         </div>
       </div>

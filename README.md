@@ -1,4 +1,4 @@
-# NaijaPlate
+# Naijachow
 
 Nigerian meal planning with culturally realistic dish combinations, saved user preferences, and private TikTok/Instagram recipe imports.
 

@@ -30,7 +30,7 @@ export async function generateStructuredJson({ prompt, schemaName, schema, maxTo
       {
         role: 'system',
         content:
-          'You are NaijaPlate, a careful Nigerian meal-planning assistant. Follow the supplied candidate lists exactly and return only schema-valid JSON.',
+          'You are Naijachow, a careful Nigerian meal-planning assistant. Follow the supplied candidate lists exactly and return only schema-valid JSON.',
       },
       { role: 'user', content: prompt },
     ],

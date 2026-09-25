@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     p_user_id: user.id,
   })
   if (error) {
-    console.error('[NaijaPlate] plan claim failed:', error.message)
+    console.error('[Naijachow] plan claim failed:', error.message)
     return sendJson(res, 409, { error: 'This plan is no longer available to claim.' })
   }
   return sendJson(res, 200, data)

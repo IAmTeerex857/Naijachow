@@ -28,7 +28,7 @@ function Brand() {
         <span />
       </div>
       <div className="brand-text">
-        <span className="brand-name">NaijaPlate</span>
+        <span className="brand-name">Naijachow</span>
         <span className="brand-sub">MEAL PLANNER</span>
       </div>
     </div>
@@ -91,7 +91,7 @@ export default function AppShell({ screen, onNavigate, dark, onToggleTheme, user
         {children}
 
         <footer className="footer">
-          <strong>NaijaPlate</strong> · Smart meal planning for Nigerian homes
+          <strong>Naijachow</strong> · Smart meal planning for Nigerian homes
           <span>
             Calorie and macro figures are estimates for general guidance only. Always consult a
             registered dietitian for medical nutrition advice.

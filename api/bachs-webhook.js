@@ -54,7 +54,7 @@ export default async function handler(req, res) {
     return sendJson(res, 200, { received: true, result: data })
   } catch (error) {
     if (error instanceof SyntaxError) return sendJson(res, 400, { error: 'Invalid JSON.' })
-    console.error('[NaijaPlate] Bachs webhook failed:', error.message)
+    console.error('[Naijachow] Bachs webhook failed:', error.message)
     return sendJson(res, 500, { error: 'Webhook processing failed.' })
   }
 }

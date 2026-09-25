@@ -1,4 +1,4 @@
-# NaijaPlate Privacy Notice - Draft
+# Naijachow Privacy Notice - Draft
 
 Effective date: To be confirmed
 

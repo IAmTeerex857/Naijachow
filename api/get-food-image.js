@@ -81,7 +81,7 @@ export default async function handler(req, res) {
     memory.set(key, hit)
     return sendJson(res, 200, { ...hit, source: 'supabase' }, { 'Cache-Control': 'public, s-maxage=3600' })
   } catch (error) {
-    console.error('[NaijaPlate] image lookup failed:', error.message)
+    console.error('[Naijachow] image lookup failed:', error.message)
     return sendJson(res, 200, miss)
   }
 }

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0f0d0b"/>
+  <circle cx="1080" cy="60" r="300" fill="#e96f26" opacity="0.18"/>
+  <circle cx="1060" cy="570" r="220" fill="#69c08a" opacity="0.12"/>
+  <rect x="86" y="80" width="72" height="72" rx="20" fill="#e96f26"/>
+  <circle cx="122" cy="116" r="17" fill="none" stroke="#fff" stroke-width="7"/>
+  <circle cx="122" cy="116" r="4" fill="#fff"/>
+  <text x="180" y="132" fill="#f5efe6" font-family="Arial, sans-serif" font-size="46" font-weight="700">Naijachow</text>
+  <text x="86" y="300" fill="#f5efe6" font-family="Arial, sans-serif" font-size="76" font-weight="700">Plan Nigerian meals</text>
+  <text x="86" y="392" fill="#e96f26" font-family="Arial, sans-serif" font-size="76" font-weight="700">around what you cook.</text>
+  <text x="90" y="484" fill="#c3b9ab" font-family="Arial, sans-serif" font-size="30">Balanced plans, smart swaps, nutrition estimates and recipe imports.</text>
+  <text x="90" y="555" fill="#f5efe6" font-family="Arial, sans-serif" font-size="24" font-weight="700">www.naijachow.xyz</text>
+</svg>

@@ -21,7 +21,7 @@ export default async function handler(req, res) {
   if (queries.some((result) => result.error)) {
     return sendJson(res, 500, { error: 'Could not prepare your export.' })
   }
-  res.setHeader('Content-Disposition', 'attachment; filename="naijaplate-data.json"')
+  res.setHeader('Content-Disposition', 'attachment; filename="naijachow-data.json"')
   return sendJson(res, 200, {
     exportedAt: new Date().toISOString(),
     account: { id: user.id, email: user.email, createdAt: user.created_at },

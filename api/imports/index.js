@@ -66,7 +66,7 @@ export default async function handler(req, res) {
     return sendJson(res, 202, { import: created })
   } catch (triggerError) {
     await db.from('social_imports').update({ processing_status: 'failed', error_code: 'TRIGGER_FAILED', error_message: 'Could not start import processing.' }).eq('id', created.id)
-    console.error('[NaijaPlate] Trigger.dev start failed:', triggerError.message)
+    console.error('[Naijachow] Trigger.dev start failed:', triggerError.message)
     return sendJson(res, 503, { error: 'Could not start import processing.' })
   }
 }

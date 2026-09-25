@@ -50,7 +50,7 @@ export default async function handler(req, res) {
     if (deletionStarted) {
       await db.rpc('abort_bachs_account_deletion', { p_user_id: user.id }).catch(() => {})
     }
-    console.error('[NaijaPlate] subscription cancellation before account deletion failed:', error.message)
+    console.error('[Naijachow] subscription cancellation before account deletion failed:', error.message)
     return sendJson(res, 502, { error: 'Could not stop subscription billing. Your account was not deleted.' })
   }
 
@@ -59,7 +59,7 @@ export default async function handler(req, res) {
     if (deletionStarted) {
       await db.rpc('abort_bachs_account_deletion', { p_user_id: user.id }).catch(() => {})
     }
-    console.error('[NaijaPlate] account deletion failed:', error.message)
+    console.error('[Naijachow] account deletion failed:', error.message)
     return sendJson(res, 500, { error: 'Could not delete the account.' })
   }
   return sendJson(res, 200, { deleted: true })

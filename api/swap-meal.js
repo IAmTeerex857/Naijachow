@@ -47,7 +47,7 @@ export default async function handler(req, res) {
   try {
     approved = (await loadApprovedComboCandidates(storedPlan.selected_dish_ids))[input.mealType]
   } catch (error) {
-    console.error('[NaijaPlate] approved combo lookup failed:', error.message)
+    console.error('[Naijachow] approved combo lookup failed:', error.message)
   }
   const candidates = excludeAvoidedCandidates(
     [...approved, ...buildCandidates(storedPlan.selected_dish_ids, input.mealType)],
@@ -85,7 +85,7 @@ export default async function handler(req, res) {
     if (updateError || !updated) throw new Error('Could not persist meal swap')
     return sendJson(res, 200, meal)
   } catch (error) {
-    console.error('[NaijaPlate] meal swap failed:', error.message)
+    console.error('[Naijachow] meal swap failed:', error.message)
     return sendJson(res, 502, { error: 'Could not produce a valid meal swap. Please try again.' })
   }
 }

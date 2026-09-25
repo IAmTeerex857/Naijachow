@@ -39,7 +39,7 @@ export default function AuthScreen({ planWaiting = false, user, onContinue }) {
   return (
     <section className="screen coming-soon auth-panel" aria-labelledby="auth-title">
       <p className="eyebrow">EMAIL SIGN-IN</p>
-      <h1 id="auth-title">{planWaiting ? 'Your plan is ready' : 'Sign in to NaijaPlate'}</h1>
+      <h1 id="auth-title">{planWaiting ? 'Your plan is ready' : 'Sign in to Naijachow'}</h1>
       <p>
         {planWaiting
           ? 'Enter your email to securely claim and view the plan we just prepared.'

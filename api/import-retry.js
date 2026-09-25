@@ -56,7 +56,7 @@ export default async function handler(req, res) {
       error_code: 'TRIGGER_FAILED',
       error_message: 'Could not restart import processing.',
     }).eq('id', record.id).eq('generation', generation)
-    console.error('[NaijaPlate] Trigger.dev retry failed:', triggerError.message)
+    console.error('[Naijachow] Trigger.dev retry failed:', triggerError.message)
     return sendJson(res, 503, { error: 'Could not restart import processing.' })
   }
 }

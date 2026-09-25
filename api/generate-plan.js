@@ -57,7 +57,7 @@ export default async function handler(req, res) {
   try {
     rawCandidates = mergeCandidateMaps(rawCandidates, await loadApprovedComboCandidates(input.selectedIds))
   } catch (error) {
-    console.error('[NaijaPlate] approved combo lookup failed:', error.message)
+    console.error('[Naijachow] approved combo lookup failed:', error.message)
   }
   const candidates = Object.fromEntries(
     Object.entries(rawCandidates).map(([type, values]) => [
@@ -107,7 +107,7 @@ export default async function handler(req, res) {
     }
   } catch (error) {
     if (!user && guestRateIdentity) await releaseRateLimit('generation-guest', guestRateIdentity).catch(() => {})
-    console.error('[NaijaPlate] generation reservation failed:', error.message)
+    console.error('[Naijachow] generation reservation failed:', error.message)
     return sendJson(res, 503, { error: 'Could not reserve this generation. Please try again.' })
   }
 
@@ -155,7 +155,7 @@ export default async function handler(req, res) {
     }
     return sendJson(res, 200, { ...plan, planId })
   } catch (error) {
-    console.error('[NaijaPlate] plan generation failed:', error.message)
+    console.error('[Naijachow] plan generation failed:', error.message)
     await releaseGuestReservation(guest?.id)
     if (!user && guestRateIdentity) await releaseRateLimit('generation-guest', guestRateIdentity).catch(() => {})
     return sendJson(res, 502, { error: 'Could not generate a valid meal plan. Please try again.' })
