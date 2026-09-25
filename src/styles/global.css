@@ -50,6 +50,9 @@ input {
   outline-offset: 2px;
   border-radius: 4px;
 }
+.main h1[tabindex='-1']:focus {
+  outline: none;
+}
 .searchfield:focus-within {
   border-color: var(--orange);
 }
@@ -223,6 +226,7 @@ input {
 }
 .upsell-metal button {
   margin-top: 0;
+  color: #fff;
 }
 .themebtn {
   display: flex;

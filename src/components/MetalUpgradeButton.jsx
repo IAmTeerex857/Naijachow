@@ -12,6 +12,7 @@ export default function MetalUpgradeButton({ dark, onClick }) {
       strength={0.62}
       paused={reducedMotion}
       disableGlow={reducedMotion}
+      normalizeHostStyles={false}
     >
       <button onClick={onClick}>Upgrade →</button>
     </MetalFx>
