@@ -39,8 +39,8 @@ export default function PreferencesScreen({ value, onChange, onContinue, signedI
       </header>
 
       {step === 0 && (
-        <fieldset className="answer-card">
-          <legend>What matters most right now?</legend>
+        <section className="answer-card" role="group" aria-labelledby="goal-question">
+          <h2 className="answer-title" id="goal-question">What matters most right now?</h2>
           <div className="answer-options">
             {GOALS.map(([key, label]) => (
               <button
@@ -54,12 +54,12 @@ export default function PreferencesScreen({ value, onChange, onContinue, signedI
               </button>
             ))}
           </div>
-        </fieldset>
+        </section>
       )}
 
       {step === 1 && (
-        <fieldset className="answer-card">
-          <legend>Do any health considerations apply?</legend>
+        <section className="answer-card" role="group" aria-labelledby="health-question">
+          <h2 className="answer-title" id="health-question">Do any health considerations apply?</h2>
           <p className="answer-help">Select only conditions relevant to meal planning. This is not medical advice.</p>
           <div className="answer-options">
             {CONDITIONS.map(([key, label]) => (
@@ -92,12 +92,12 @@ export default function PreferencesScreen({ value, onChange, onContinue, signedI
               placeholder="Only enter dietary instructions you have already been given"
             />
           </label>
-        </fieldset>
+        </section>
       )}
 
       {step === 2 && (
-        <fieldset className="answer-card">
-          <legend>What fits your household?</legend>
+        <section className="answer-card" role="group" aria-labelledby="household-question">
+          <h2 className="answer-title" id="household-question">What fits your household?</h2>
           <label className="answer-field">
             People eating
             <input
@@ -142,7 +142,7 @@ export default function PreferencesScreen({ value, onChange, onContinue, signedI
               These answers are sent securely to build this plan. They are retained for future plans only if you consent and then sign in.
             </p>
           )}
-        </fieldset>
+        </section>
       )}
 
       <footer className="answer-actions">

@@ -178,8 +178,9 @@ input {
   color: var(--ink);
 }
 .navbtn.active {
-  background: var(--orange-soft);
+  background: color-mix(in srgb, var(--orange) 16%, var(--surface));
   color: var(--orange);
+  box-shadow: inset 3px 0 var(--orange);
 }
 .railfoot {
   margin-top: auto;
@@ -423,6 +424,13 @@ input {
 .btn-orange:hover {
   background: var(--orange-2);
 }
+.btn-primary {
+  background: var(--orange);
+  color: var(--orange-ink);
+}
+.btn-primary:hover {
+  background: var(--orange-2);
+}
 .btn-outline {
   background: transparent;
   color: var(--ink);
@@ -494,7 +502,7 @@ input {
   height: 300px;
   left: -120px;
   top: -110px;
-  opacity: 0.14;
+  opacity: 0.22;
   filter: blur(1px);
   pointer-events: none;
 }
@@ -663,25 +671,14 @@ input {
 .step {
   padding: 26px;
 }
-.step-chip {
-  width: 40px;
-  height: 40px;
-  border-radius: 11px;
+.step-avatar {
+  width: 64px;
+  height: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 16px;
 }
-.step-chip i {
-  width: 16px;
-  height: 16px;
-}
-.step-chip.a { background: var(--orange-soft); }
-.step-chip.a i { border: 2.5px solid var(--orange); border-radius: 4px; }
-.step-chip.b { background: var(--purple-soft); }
-.step-chip.b i { border: 2.5px solid var(--purple); border-radius: 50%; }
-.step-chip.c { background: var(--green-soft); }
-.step-chip.c i { background: var(--green); border-radius: 4px; }
 .step-n {
   font-size: 12px;
   font-weight: 700;
@@ -1472,7 +1469,7 @@ input {
 .premium-card {
   margin-top: 0;
   padding: 28px;
-  border-color: var(--purple);
+  border-color: var(--orange);
 }
 .premium-beam {
   display: block;
@@ -1616,11 +1613,11 @@ input {
   background: var(--surface);
 }
 
-.answer-card legend {
-  padding: 0 8px;
+.answer-title {
   color: var(--ink);
   font-size: 1.3rem;
   font-weight: 800;
+  line-height: 1.2;
 }
 
 .answer-options {

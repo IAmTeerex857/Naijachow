@@ -1,4 +1,5 @@
 import { lazy, Suspense } from 'react'
+import { BotAvatar } from 'bot-avatars'
 import { FOODS } from '../data/foods'
 import { fetchFoodImage } from '../lib/api'
 import ImageTile from './ImageTile'
@@ -12,19 +13,22 @@ const POPULAR = POPULAR_IDS.map((id) => FOODS.find((f) => f.id === id)).filter(B
 
 const STEPS = [
   {
-    chip: 'a',
+    avatar: 'square',
+    state: 'default',
     n: 'STEP 01',
     title: 'Select your dishes',
     body: 'Choose from 60 finished Nigerian dishes across soups, swallows, carbs, protein & fruits.',
   },
   {
-    chip: 'b',
+    avatar: 'clover',
+    state: 'working',
     n: 'STEP 02',
     title: 'We build the plan',
     body: 'AI pairs your dishes into balanced days, respecting soup-and-swallow rules and nutrition.',
   },
   {
-    chip: 'c',
+    avatar: 'flower',
+    state: 'default',
     n: 'STEP 03',
     title: 'Cook & swap',
     body: "Get recipes, swap any meal you don't fancy, and print or order from a nearby vendor.",
@@ -47,8 +51,8 @@ export default function HomeScreen({ onStart, onSeeSaved }) {
             What can you <em>cook</em> today?
           </h1>
           <p>
-            Pick the finished Nigerian dishes you can make. We arrange a balanced multi-day plan —
-            breakfast, lunch &amp; dinner — from only what you selected.
+            Pick the finished Nigerian dishes you can make. We arrange a balanced multi-day plan
+            with breakfast, lunch and dinner using only what you selected.
           </p>
           <div className="hero-actions">
             <button className="btn btn-orange" onClick={onStart}>
@@ -69,8 +73,8 @@ export default function HomeScreen({ onStart, onSeeSaved }) {
         <div className="steps">
           {STEPS.map((s) => (
             <div className="card step" key={s.n}>
-              <div className={`step-chip ${s.chip}`} aria-hidden="true">
-                <i />
+              <div className="step-avatar" aria-hidden="true">
+                <BotAvatar type={s.avatar} state={s.state} size={64} />
               </div>
               <div className="step-n">{s.n}</div>
               <h3>{s.title}</h3>
