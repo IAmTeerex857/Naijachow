@@ -11,11 +11,20 @@ export const BACHS_PRODUCT = Object.freeze({
   frequency: 1,
 })
 
+export const BACHS_PASS = Object.freeze({
+  id: 'naijachow_premium_30_day',
+  name: 'Naijachow Premium, 30 days',
+  amount: '2500.00',
+  currency: 'NGN',
+  accessDays: 30,
+})
+
 export const SUBSCRIPTION_EVENTS = new Set([
   'customer.subscription.created',
   'customer.subscription.updated',
   'customer.subscription.deleted',
 ])
+export const BILLING_EVENTS = new Set([...SUBSCRIPTION_EVENTS, 'collection.succeeded'])
 const SUBSCRIPTION_STATUSES = new Set(['trialing', 'active', 'past_due', 'unpaid', 'canceled', 'paused'])
 
 export function bachsProductId() {
@@ -40,8 +49,9 @@ export async function bachsRequest(path, options = {}) {
   })
   const payload = await response.json().catch(() => ({}))
   if (!response.ok) {
-    const error = new Error(payload.error?.message || payload.message || `Bachs request failed (${response.status})`)
+    const error = new Error(payload.error?.message || payload.message || payload.detail || `Bachs request failed (${response.status})`)
     error.status = response.status
+    error.code = payload.error?.code || payload.error_code || null
     throw error
   }
   return payload
@@ -120,6 +130,7 @@ export function isValidCheckoutResponse(checkout, now = Date.now()) {
   return Boolean(
     typeof checkout?.checkout_id === 'string' && checkout.checkout_id.startsWith('chk_') &&
     checkout.status === 'open' && checkoutUrl.protocol === 'https:' &&
+    (checkoutUrl.hostname === 'bachs.io' || checkoutUrl.hostname.endsWith('.bachs.io')) &&
     Number.isFinite(expiresAt) && expiresAt > now
   )
 }
@@ -141,7 +152,7 @@ export async function cancelBachsSubscriptionImmediately(subscriptionId, reason)
 export async function subscriptionStatus(userId) {
   const { data, error } = await supabaseAdmin()
     .from('subscriptions')
-    .select('provider_subscription_id,status,provider_status,current_period_start,current_period_end,cancel_at_period_end,product_id')
+    .select('provider_subscription_id,checkout_id,status,provider_status,current_period_start,current_period_end,cancel_at_period_end,product_id')
     .eq('user_id', userId)
     .eq('provider', 'bachs')
     .order('updated_at', { ascending: false })
@@ -172,5 +183,34 @@ export function subscriptionRpcPayload(event, deletedCancelled = false) {
     p_event_rank: subscriptionEventRank(data.status),
     p_deleted_cancelled: deletedCancelled,
     p_valid_product: validateSubscriptionData(data),
+  }
+}
+
+export function validatePremiumPayment(data) {
+  return Boolean(
+    data &&
+    ['SUCCEEDED', 'ACCEPTED', 'OVERPAID'].includes(data.status) &&
+    typeof data.checkout_id === 'string' && data.checkout_id.startsWith('chk_') &&
+    typeof data.reference === 'string' && data.reference.startsWith('premium_') &&
+    data.currency === BACHS_PASS.currency &&
+    Number(data.amount) >= Number(BACHS_PASS.amount) &&
+    data.metadata?.purchase === BACHS_PASS.id &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(data.metadata?.user_id || '')
+  )
+}
+
+export function paymentRpcPayload(event) {
+  const data = event.data || {}
+  return {
+    p_event_id: event.id,
+    p_event_created_at: event.created_at,
+    p_payload: event,
+    p_user_id: data.metadata?.user_id || null,
+    p_checkout_id: data.checkout_id || null,
+    p_reference: data.reference || null,
+    p_customer_id: data.customer?.customer_id || data.customer?.id || null,
+    p_amount: data.amount,
+    p_currency: data.currency,
+    p_valid_payment: validatePremiumPayment(data),
   }
 }

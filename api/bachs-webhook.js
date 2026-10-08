@@ -1,7 +1,8 @@
 import {
-  SUBSCRIPTION_EVENTS,
+  BILLING_EVENTS,
   cancelBachsSubscriptionImmediately,
   subscriptionRpcPayload,
+  paymentRpcPayload,
   verifyBachsSignature,
 } from '../server/bachs.js'
 import { requireMethod, sendJson } from '../server/http.js'
@@ -33,8 +34,16 @@ export default async function handler(req, res) {
     if (!event.id || !event.type || !event.created_at || !event.data) {
       return sendJson(res, 400, { error: 'Invalid webhook event.' })
     }
-    if (!SUBSCRIPTION_EVENTS.has(event.type)) return sendJson(res, 200, { received: true, ignored: true })
+    if (!BILLING_EVENTS.has(event.type)) return sendJson(res, 200, { received: true, ignored: true })
     const db = supabaseAdmin()
+    if (event.type === 'collection.succeeded') {
+      const payment = await db.rpc('reconcile_bachs_payment', paymentRpcPayload(event))
+      if (payment.error) throw payment.error
+      if (['ignored_missing_checkout', 'ignored_user_mismatch'].includes(payment.data)) {
+        return sendJson(res, 503, { error: 'Payment could not be correlated.' })
+      }
+      return sendJson(res, 200, { received: true, result: payment.data })
+    }
     let { data, error } = await db.rpc('reconcile_bachs_subscription', subscriptionRpcPayload(event))
     if (error) throw error
     if (data === 'cancel_orphan') {

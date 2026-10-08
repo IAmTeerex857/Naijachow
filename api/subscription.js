@@ -1,6 +1,5 @@
 import {
-  BACHS_PRODUCT,
-  bachsProductId,
+  BACHS_PASS,
   bachsRequest,
   isReusableCheckout,
   isValidCheckoutResponse,
@@ -10,23 +9,23 @@ import { parseJsonBody, requireMethod, sendJson } from '../server/http.js'
 import { authenticatedUser, supabaseAdmin } from '../server/supabaseAdmin.js'
 
 async function startCheckout(user) {
-  if (!user.email) return { status: 401, body: { error: 'Sign in to subscribe.' } }
+  if (!user.email) return { status: 401, body: { error: 'Sign in to get Premium.' } }
   if ((await subscriptionStatus(user.id)).active) {
-    return { status: 409, body: { error: 'Your Premium subscription is already active.' } }
+    return { status: 409, body: { error: 'Your Premium access is already active.' } }
   }
 
   const db = supabaseAdmin()
   const { data: reservation, error: reservationError } = await db.rpc('reserve_bachs_checkout', {
     p_user_id: user.id,
-    p_product_id: bachsProductId(),
-    p_amount: BACHS_PRODUCT.amount,
-    p_currency: BACHS_PRODUCT.currency,
+    p_product_id: BACHS_PASS.id,
+    p_amount: BACHS_PASS.amount,
+    p_currency: BACHS_PASS.currency,
   })
   if (reservationError || !reservation?.checkout_reference) {
     throw reservationError || new Error('Could not reserve checkout')
   }
   if (isReusableCheckout(reservation) && reservation.checkout_url) {
-    return { status: 200, body: { checkout_url: reservation.checkout_url } }
+    return { status: 200, body: { checkout_url: reservation.checkout_url, checkout_id: reservation.checkout_id } }
   }
 
   const reference = reservation.checkout_reference
@@ -36,12 +35,12 @@ async function startCheckout(user) {
       method: 'POST',
       headers: { 'Idempotency-Key': reference },
       body: JSON.stringify({
-        product_cart: [{ product_id: bachsProductId(), quantity: 1 }],
+        pricing: { amount: BACHS_PASS.amount, currency: BACHS_PASS.currency },
         customer: { email: user.email },
         success_url: `${appUrl}/?subscription=success`,
         cancel_url: `${appUrl}/?subscription=cancelled`,
         reference,
-        metadata: { user_id: user.id, product: BACHS_PRODUCT.name },
+        metadata: { user_id: user.id, purchase: BACHS_PASS.id },
         expires_in_minutes: 60,
       }),
     })
@@ -54,27 +53,13 @@ async function startCheckout(user) {
       p_expires_at: checkout.expires_at,
     })
     if (finalizeError || !finalized) throw finalizeError || new Error('Checkout reservation is no longer valid')
-    return { status: 200, body: { checkout_url: checkout.checkout_url } }
+    return { status: 200, body: { checkout_url: checkout.checkout_url, checkout_id: checkout.checkout_id } }
   } catch (error) {
     if (error.status >= 400 && error.status < 500 && error.status !== 429) {
-      await db.rpc('fail_bachs_checkout', { p_user_id: user.id, p_reference: reference }).catch(() => {})
+      const cleanup = await db.rpc('fail_bachs_checkout', { p_user_id: user.id, p_reference: reference })
+      if (cleanup.error) console.error('[Naijachow] checkout cleanup failed:', cleanup.error.message)
     }
     throw error
-  }
-}
-
-async function cancelSubscription(user) {
-  const { subscription } = await subscriptionStatus(user.id)
-  if (!subscription?.provider_subscription_id || !['trialing', 'active'].includes(subscription.provider_status)) {
-    return { status: 409, body: { error: 'No active subscription can be cancelled.' } }
-  }
-  await bachsRequest(`/v1/subscriptions/${encodeURIComponent(subscription.provider_subscription_id)}`, {
-    method: 'DELETE',
-    body: JSON.stringify({ cancel_at_period_end: true, reason: 'Customer requested' }),
-  })
-  return {
-    status: 202,
-    body: { message: 'Cancellation requested. Access continues through the current period.' },
   }
 }
 
@@ -82,20 +67,18 @@ export default async function handler(req, res) {
   if (!requireMethod(req, res, ['GET', 'POST'])) return
   try {
     const user = await authenticatedUser(req)
-    if (!user) return sendJson(res, 401, { error: 'Sign in to manage your subscription.' })
+    if (!user) return sendJson(res, 401, { error: 'Sign in to manage Premium access.' })
     if (req.method === 'GET') return sendJson(res, 200, await subscriptionStatus(user.id))
 
     const action = parseJsonBody(req).action
     const result = action === 'checkout'
       ? await startCheckout(user)
-      : action === 'cancel'
-        ? await cancelSubscription(user)
-        : { status: 400, body: { error: 'Invalid subscription action.' } }
+      : { status: 400, body: { error: 'Invalid Premium action.' } }
     return sendJson(res, result.status, result.body)
   } catch (error) {
-    console.error('[Naijachow] subscription request failed:', error.message)
+    console.error('[Naijachow] Premium request failed:', error.message)
     return sendJson(res, error.status >= 400 && error.status < 500 ? error.status : 502, {
-      error: 'Could not manage your subscription. Please try again.',
+      error: 'Could not start the Premium payment. Please try again.',
     })
   }
 }

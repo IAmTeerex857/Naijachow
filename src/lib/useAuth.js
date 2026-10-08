@@ -8,9 +8,15 @@ export function useAuth() {
   useEffect(() => {
     if (!supabase) return
     let active = true
-    supabase.auth.getSession().then(({ data }) => {
+    async function initialize() {
+      const { data } = await supabase.auth.getSession()
       if (active) {
         setSession(data.session)
+        setLoading(false)
+      }
+    }
+    initialize().catch(() => {
+      if (active) {
         setLoading(false)
       }
     })

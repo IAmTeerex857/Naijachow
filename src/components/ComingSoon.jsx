@@ -7,7 +7,7 @@ export default function ComingSoon({ eyebrow, title, body, onStart }) {
         <h1>{title}</h1>
         <p>{body}</p>
         <button className="btn btn-orange" onClick={onStart}>
-          Build a plan instead →
+          Build a plan instead
         </button>
       </div>
     </div>

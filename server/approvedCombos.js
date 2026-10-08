@@ -14,8 +14,10 @@ export async function loadApprovedComboCandidates(selectedIds) {
     const ids = [...(record.dish_combo_components || [])]
       .sort((a, b) => a.position - b.position)
       .map((component) => component.dish_id)
-    if (!ids.length || ids.some((id) => !selected.has(id))) continue
-    const candidate = { ...makeCombo(ids), name: record.canonical_name }
+    if (!ids.length) continue
+    const base = makeCombo(ids, record.canonical_name)
+    if (!base) continue
+    const candidate = { ...base, preference_score: ids.filter((id) => selected.has(id)).length }
     for (const mealType of record.meal_types || []) {
       if (result[mealType]) result[mealType].push(candidate)
     }

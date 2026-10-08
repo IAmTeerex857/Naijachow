@@ -7,6 +7,7 @@ export const generateRequestSchema = z
     selectedIds: z.array(z.string().min(1).max(40)).min(3).max(60),
     selectedDays: z.number().int().min(1).max(30),
     fastingDay: weekday.nullable(),
+    fasting_type: z.enum(['food', 'spiritual']).optional().default('food'),
     turnstileToken: z.string().max(2048).nullable(),
     preferences: z
       .object({
@@ -17,11 +18,12 @@ export const generateRequestSchema = z
         foodsToAvoid: z.string().max(500),
         clinicianInstructions: z.string().max(1000),
         householdSize: z.number().int().min(1).max(30),
-        budgetLevel: z.enum(['low', 'moderate', 'flexible']),
+        budgetLevel: z.enum(['low', 'moderate', 'flexible']).optional(),
         maxCookingMinutes: z.number().int().min(15).max(120),
         healthConsent: z.boolean(),
       })
-      .strict(),
+      .strict()
+      .transform(({ budgetLevel: _legacyBudgetLevel, ...preferences }) => preferences),
   })
   .strict()
 
@@ -44,7 +46,6 @@ export const modelMealSchema = z
     protein: z.number().int().min(0).max(250),
     carbs: z.number().int().min(0).max(400),
     fat: z.number().int().min(0).max(200),
-    health_note: z.string().min(1).max(240),
   })
   .strict()
 
@@ -87,7 +88,7 @@ export const MODEL_PLAN_JSON_SCHEMA = {
     meal: {
       type: 'object',
       additionalProperties: false,
-      required: ['candidate_key', 'description', 'calories', 'protein', 'carbs', 'fat', 'health_note'],
+      required: ['candidate_key', 'description', 'calories', 'protein', 'carbs', 'fat'],
       properties: {
         candidate_key: { type: 'string' },
         description: { type: 'string' },
@@ -95,7 +96,6 @@ export const MODEL_PLAN_JSON_SCHEMA = {
         protein: { type: 'integer', minimum: 0, maximum: 250 },
         carbs: { type: 'integer', minimum: 0, maximum: 400 },
         fat: { type: 'integer', minimum: 0, maximum: 200 },
-        health_note: { type: 'string' },
       },
     },
   },

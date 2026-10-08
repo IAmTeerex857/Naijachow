@@ -22,7 +22,7 @@ export default class ErrorBoundary extends Component {
           <div className="eyebrow">SOMETHING BROKE</div>
           <h1>That plan didn&apos;t load</h1>
           <p>
-            Something went wrong while showing your plan. Your dishes are safe — start again and
+            Something went wrong while showing your plan. Your dishes are safe. Start again and
             we&apos;ll rebuild it.
           </p>
           <button className="btn btn-orange" onClick={() => window.location.reload()}>

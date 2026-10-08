@@ -7,11 +7,11 @@ export default function NutritionStrip({ days }) {
   const n = planNutrition(days)
 
   const stats = [
-    { val: n.calories || '—', lbl: 'AVG KCAL', color: 'var(--orange)' },
-    { val: n.protein ? `${n.protein}g` : '—', lbl: 'PROTEIN', color: 'var(--green)' },
-    { val: n.carbs ? `${n.carbs}g` : '—', lbl: 'CARBS', color: 'var(--blue)' },
-    { val: n.fat ? `${n.fat}g` : '—', lbl: 'FAT', color: 'var(--purple)' },
-    { val: n.days ? n.balance : '—', lbl: 'BALANCE', color: 'var(--ink)' },
+    { val: n.calories || 'N/A', lbl: 'AVG KCAL', color: 'var(--orange)' },
+    { val: n.protein ? `${n.protein}g` : 'N/A', lbl: 'PROTEIN', color: 'var(--green)' },
+    { val: n.carbs ? `${n.carbs}g` : 'N/A', lbl: 'CARBS', color: 'var(--blue)' },
+    { val: n.fat ? `${n.fat}g` : 'N/A', lbl: 'FAT', color: 'var(--purple)' },
+    { val: n.days ? n.balance : 'N/A', lbl: 'BALANCE', color: 'var(--ink)' },
   ]
 
   return (

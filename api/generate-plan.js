@@ -14,13 +14,14 @@ import { consumeRateLimit, releaseRateLimit } from '../server/rateLimit.js'
 import { loadApprovedComboCandidates } from '../server/approvedCombos.js'
 import { subscriptionStatus } from '../server/bachs.js'
 import { buildSchedule, chunkSchedule } from '../server/planSchedule.js'
+import { addFruitToPlan, assignMealCandidates, candidatesForSlot } from '../server/planPolicy.js'
 
 const MAX_FREE_DAYS = 7
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner']
 
 function generationPrompt(schedule, candidates, preferences) {
   return `Build this exact schedule: ${JSON.stringify(schedule)}.
-For each non-fasting meal, select one candidate_key from the corresponding approved list below. Never create a new key. Prefer variety and do not repeat a candidate more than twice unless the list leaves no alternative.
+For each non fasting meal, use the breakfast_key, lunch_key, and dinner_key assigned in the schedule as its candidate_key. Never substitute or create a key. The server has already assigned meals for variety and meal-family compatibility.
 
 Approved breakfast candidates: ${JSON.stringify(candidates.breakfast)}
 Approved lunch candidates: ${JSON.stringify(candidates.lunch)}
@@ -32,11 +33,11 @@ User planning context: ${JSON.stringify({
     foodsToAvoid: preferences.foodsToAvoid,
     clinicianInstructions: preferences.clinicianInstructions,
     householdSize: preferences.householdSize,
-    budgetLevel: preferences.budgetLevel,
     maxCookingMinutes: preferences.maxCookingMinutes,
   })}
 
-Treat stated allergies, avoidances, and clinician instructions as hard constraints. Do not diagnose, promise treatment, or add medical claims. If an approved candidate conflicts with a hard constraint, do not select it.
+Use the planning context only for neutral serving descriptions. Avoided foods have already been filtered by the server. Do not diagnose, promise treatment, claim suitability for a condition, or add medical advice.
+Do not use em dash or en dash characters in any text.
 
 For fasting days, return null for breakfast, lunch, and dinner. Nutrition values are approximate values for one normal serving.`
 }
@@ -51,26 +52,16 @@ export default async function handler(req, res) {
     return sendJson(res, 400, { error: 'Invalid meal-plan request.' })
   }
 
-  const selectedFoods = resolveSelectedFoods(input.selectedIds)
-  if (!selectedFoods) return sendJson(res, 400, { error: 'Select at least three valid dishes.' })
-  let rawCandidates = candidateMap(input.selectedIds)
-  try {
-    rawCandidates = mergeCandidateMaps(rawCandidates, await loadApprovedComboCandidates(input.selectedIds))
-  } catch (error) {
-    console.error('[Naijachow] approved combo lookup failed:', error.message)
-  }
-  const candidates = Object.fromEntries(
-    Object.entries(rawCandidates).map(([type, values]) => [
-      type,
-      excludeAvoidedCandidates(values, input.preferences.foodsToAvoid),
-    ])
-  )
-  const unavailable = MEAL_TYPES.filter((type) => candidates[type].length === 0)
-  if (unavailable.length) {
+  if (input.fastingDay && input.preferences.conditions.some((condition) =>
+    ['diabetes', 'kidney_condition', 'pregnancy'].includes(condition)
+  )) {
     return sendJson(res, 422, {
-      error: `Your selection cannot make a realistic ${unavailable.join(', ')}. Add a breakfast food, or pair a carb with protein or soup with swallow.`,
+      error: 'Fasting plans are not available with the selected health considerations. Follow advice from your clinician.',
     })
   }
+
+  const selectedFoods = resolveSelectedFoods(input.selectedIds)
+  if (!selectedFoods) return sendJson(res, 400, { error: 'Select at least three valid dishes.' })
   let user
   let guest
   let guestRateIdentity
@@ -80,7 +71,7 @@ export default async function handler(req, res) {
       const premium = user && (await subscriptionStatus(user.id)).active
       if (!premium) {
         return sendJson(res, 402, {
-          error: `${input.selectedDays}-day plans require an active Premium subscription.`,
+          error: `Plans for ${input.selectedDays} days require active Premium access.`,
           premium_required: true,
           max_free_days: MAX_FREE_DAYS,
         })
@@ -106,15 +97,47 @@ export default async function handler(req, res) {
       }
     }
   } catch (error) {
+    if (user) await releaseRateLimit('generation-user', user.id).catch(() => {})
     if (!user && guestRateIdentity) await releaseRateLimit('generation-guest', guestRateIdentity).catch(() => {})
     console.error('[Naijachow] generation reservation failed:', error.message)
     return sendJson(res, 503, { error: 'Could not reserve this generation. Please try again.' })
   }
 
-  const schedule = buildSchedule(input.selectedDays, input.fastingDay)
+  let rawCandidates = candidateMap(input.selectedIds)
+  try {
+    rawCandidates = mergeCandidateMaps(rawCandidates, await loadApprovedComboCandidates(input.selectedIds))
+  } catch (error) {
+    console.error('[Naijachow] approved combo lookup failed:', error.message)
+  }
+  const candidates = Object.fromEntries(
+    Object.entries(rawCandidates).map(([type, values]) => [
+      type,
+      candidatesForSlot(excludeAvoidedCandidates(values, input.preferences.foodsToAvoid), type),
+    ])
+  )
+  const unavailable = MEAL_TYPES.filter((type) => candidates[type].length === 0)
+  if (unavailable.length) {
+    await releaseGuestReservation(guest?.id)
+    if (user) await releaseRateLimit('generation-user', user.id).catch(() => {})
+    if (!user && guestRateIdentity) await releaseRateLimit('generation-guest', guestRateIdentity).catch(() => {})
+    return sendJson(res, 422, {
+      error: `Your selection cannot make a realistic ${unavailable.join(', ')}. Add a breakfast food, or pair a carb with protein or soup with swallow.`,
+    })
+  }
+
+  const schedule = buildSchedule(input.selectedDays, input.fastingDay, input.fasting_type)
+  let assignedSchedule
+  try {
+    assignedSchedule = assignMealCandidates(schedule, candidates)
+  } catch (error) {
+    await releaseGuestReservation(guest?.id)
+    if (user) await releaseRateLimit('generation-user', user.id).catch(() => {})
+    if (!user && guestRateIdentity) await releaseRateLimit('generation-guest', guestRateIdentity).catch(() => {})
+    return sendJson(res, 422, { error: 'The available meals cannot satisfy the variety rules. Add more dish choices.' })
+  }
 
   try {
-    const parsedChunks = await Promise.all(chunkSchedule(schedule).map(async (scheduledDays, index) => {
+    const parsedChunks = await Promise.all(chunkSchedule(assignedSchedule).map(async (scheduledDays, index) => {
       const raw = await generateStructuredJson({
         prompt: generationPrompt(scheduledDays, candidates, input.preferences),
         schemaName: `naijaplate_meal_plan_${index + 1}`,
@@ -129,22 +152,32 @@ export default async function handler(req, res) {
     if (generatedDays.length !== schedule.length) throw new Error('Wrong day count')
 
     const days = generatedDays.map((day, index) => {
-      const expected = schedule[index]
+      const expected = assignedSchedule[index]
       if (day.is_fasting !== expected.is_fasting) throw new Error('Invalid fasting schedule')
-      const result = { day: expected.day, is_fasting: expected.is_fasting }
+      const result = {
+        day: expected.day,
+        is_fasting: expected.is_fasting,
+        ...(expected.fasting_message ? { fasting_message: expected.fasting_message } : {}),
+        ...(expected.scripture ? { scripture: expected.scripture } : {}),
+      }
       for (const type of MEAL_TYPES) {
         if (expected.is_fasting) {
           if (day[type] !== null) throw new Error('Fasting day contains meals')
           continue
         }
-        const candidate = candidates[type].find((item) => item.key === day[type]?.candidate_key)
+        if (day[type]?.candidate_key !== expected[`${type}_key`]) throw new Error(`Changed assigned ${type} candidate`)
+        const candidate = candidates[type].find((item) => item.key === expected[`${type}_key`])
         if (!candidate) throw new Error(`Unapproved ${type} candidate`)
         result[type] = materializeMeal(candidate, day[type])
       }
       result.total_calories = MEAL_TYPES.reduce((sum, type) => sum + (result[type]?.calories || 0), 0)
       return result
     })
-    const plan = { days, source: 'azure-openai' }
+    const plan = {
+      days: addFruitToPlan(days, input.selectedIds, input.preferences.foodsToAvoid),
+      source: 'azure-openai',
+      fasting_type: input.fasting_type,
+    }
     const planId = await saveGeneratedPlan({ user, guestId: guest?.id, input, plan })
     if (!user) {
       return sendJson(res, 202, {
@@ -157,6 +190,7 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error('[Naijachow] plan generation failed:', error.message)
     await releaseGuestReservation(guest?.id)
+    if (user) await releaseRateLimit('generation-user', user.id).catch(() => {})
     if (!user && guestRateIdentity) await releaseRateLimit('generation-guest', guestRateIdentity).catch(() => {})
     return sendJson(res, 502, { error: 'Could not generate a valid meal plan. Please try again.' })
   }

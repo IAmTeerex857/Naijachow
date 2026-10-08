@@ -7,7 +7,7 @@
    numbers cannot drift out of step with what the user is actually looking at.
    =========================================================================== */
 
-const MEAL_TYPES = ['breakfast', 'lunch', 'dinner']
+const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snack']
 
 const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0)
 

@@ -6,6 +6,7 @@ import {
   hasActiveEntitlement,
   isReusableCheckout,
   isValidCheckoutResponse,
+  validatePremiumPayment,
   subscriptionEventRank,
   validateSubscriptionData,
   verifyBachsSignature,
@@ -19,6 +20,27 @@ const signature = crypto.createHmac('sha256', secret).update(`${timestamp}.${raw
 afterEach(() => {
   delete process.env.BACHS_API_BASE_URL
   delete process.env.BACHS_PRODUCT_ID
+})
+
+describe('Bachs one time Premium payments', () => {
+  const payment = {
+    checkout_id: 'chk_test',
+    reference: 'premium_76e385f8-2e72-4fea-ae0f-c4f159000000_reference',
+    status: 'SUCCEEDED',
+    amount: '2500.00',
+    currency: 'NGN',
+    metadata: {
+      purchase: 'naijachow_premium_30_day',
+      user_id: '76e385f8-2e72-4fea-ae0f-c4f159000000',
+    },
+  }
+
+  it('accepts only valid successful Premium payments', () => {
+    expect(validatePremiumPayment(payment)).toBe(true)
+    expect(validatePremiumPayment({ ...payment, amount: '2499.99' })).toBe(false)
+    expect(validatePremiumPayment({ ...payment, currency: 'USD' })).toBe(false)
+    expect(validatePremiumPayment({ ...payment, status: 'FAILED' })).toBe(false)
+  })
 })
 
 describe('Bachs configuration and webhook verification', () => {
@@ -102,5 +124,6 @@ describe('Bachs subscription validation', () => {
     expect(isValidCheckoutResponse(checkout, now)).toBe(true)
     expect(isValidCheckoutResponse({ ...checkout, status: 'expired' }, now)).toBe(false)
     expect(isValidCheckoutResponse({ ...checkout, checkout_url: 'http://example.test' }, now)).toBe(false)
+    expect(isValidCheckoutResponse({ ...checkout, checkout_url: 'https://example.test/phishing' }, now)).toBe(false)
   })
 })

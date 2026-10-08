@@ -11,7 +11,6 @@ const NAV = [
   { key: 'home', label: 'Home', glyph: 'round' },
   { key: 'select', label: 'New Plan', glyph: 'square' },
   { key: 'saved', label: 'Saved', railLabel: 'Saved Plans', glyph: 'square' },
-  { key: 'imports', label: 'Imports', glyph: 'round' },
   { key: 'premium', label: 'Premium', glyph: 'solid' },
 ]
 
@@ -37,81 +36,94 @@ function Brand() {
 
 function ThemeButton({ dark, onToggle }) {
   return (
-    <button className="themebtn" onClick={onToggle} aria-label="Toggle colour theme">
-      <span>Theme</span>
-      <span className="dot">
-        <i aria-hidden="true" />
-        {dark ? 'Dark' : 'Light'}
-      </span>
+    <button
+      className="themebtn"
+      onClick={onToggle}
+      aria-label={dark ? 'Use light theme' : 'Use dark theme'}
+      title={dark ? 'Use light theme' : 'Use dark theme'}
+    >
+      {dark ? (
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.41M17.66 6.34l1.41-1.41" /></svg>
+      ) : (
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.4 15.5A8.5 8.5 0 0 1 8.5 3.6 8.5 8.5 0 1 0 20.4 15.5Z" /></svg>
+      )}
     </button>
   )
 }
 
-export default function AppShell({ screen, onNavigate, dark, onToggleTheme, user, onSignOut, onAccount, children }) {
+export default function AppShell({ screen, onNavigate, dark, onToggleTheme, user, premiumActive, onAccount, children }) {
   return (
     <div className="app">
       <aside className="rail">
         <Brand />
         <nav className="railnav" aria-label="Main">
           {NAV.map((item) => (
-            <button
+            <a
               key={item.key}
+              href={`#/${item.key}`}
               className={`navbtn ${isActive(item.key, screen) ? 'active' : ''}`}
               data-active={isActive(item.key, screen) ? 'true' : 'false'}
-              onClick={() => onNavigate(item.key)}
+              onClick={(event) => { event.preventDefault(); onNavigate(item.key) }}
               aria-current={isActive(item.key, screen) ? 'page' : undefined}
             >
               {item.railLabel || item.label}
-            </button>
+            </a>
           ))}
         </nav>
 
         <div className="railfoot">
-          {screen !== 'premium' && <div className="upsell">
+          {premiumActive === false && screen !== 'premium' && <div className="upsell">
             <div className="upsell-tag">FREE PLAN</div>
-            <p>Up to 7-day plans. Upgrade for 14 &amp; 30-day.</p>
-            <Suspense fallback={<button onClick={() => onNavigate('premium')}>Upgrade →</button>}>
+            <p>Plans for up to 7 days. Upgrade for 14 or 30 days.</p>
+            <Suspense fallback={<button onClick={() => onNavigate('premium')}>Upgrade</button>}>
               <MetalUpgradeButton dark={dark} onClick={() => onNavigate('premium')} />
             </Suspense>
           </div>}
-          <ThemeButton dark={dark} onToggle={onToggleTheme} />
-          {user && <button className="linkbtn" onClick={onAccount}>Account</button>}
-          {user && <button className="linkbtn" onClick={onSignOut}>Sign out</button>}
+          {user && (
+            <div className="account-menu">
+              <button onClick={onAccount}>
+                <span className="account-avatar" aria-hidden="true">{user.email?.[0]?.toUpperCase() || 'N'}</span>
+                <span>Account</span>
+              </button>
+            </div>
+          )}
         </div>
       </aside>
 
-      <div className="main">
-        <div className="topbar">
+      <main className="main">
+        <div className="desktop-utility"><ThemeButton dark={dark} onToggle={onToggleTheme} /></div>
+        <header className="topbar">
           <Brand />
           <div className="topbar-actions">
             {user && <button className="linkbtn" onClick={onAccount}>Account</button>}
             <ThemeButton dark={dark} onToggle={onToggleTheme} />
           </div>
-        </div>
+        </header>
         {children}
 
         <footer className="footer">
-          <strong>Naijachow</strong> · Smart meal planning for Nigerian homes
+          <strong>Naijachow</strong> Smart meal planning for Nigerian homes
           <span>
             Calorie and macro figures are estimates for general guidance only. Always consult a
             registered dietitian for medical nutrition advice.
           </span>
         </footer>
-      </div>
+      </main>
 
       <nav className="tabbar" aria-label="Main">
         {NAV.map((item) => (
-          <button
+          <a
             key={item.key}
+            href={`#/${item.key}`}
             className={`tabbtn ${item.glyph === 'round' ? 'round' : ''} ${
               item.glyph === 'solid' ? 'solid' : ''
             } ${isActive(item.key, screen) ? 'active' : ''}`}
-            onClick={() => onNavigate(item.key)}
+            onClick={(event) => { event.preventDefault(); onNavigate(item.key) }}
             aria-current={isActive(item.key, screen) ? 'page' : undefined}
           >
             <span className="glyph" aria-hidden="true" />
             {item.label}
-          </button>
+          </a>
         ))}
       </nav>
     </div>

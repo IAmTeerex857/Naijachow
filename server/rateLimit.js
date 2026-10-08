@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto'
+import { createHmac } from 'node:crypto'
 import { supabaseAdmin } from './supabaseAdmin.js'
 
 export async function consumeRateLimit(scope, identity, limit, windowSeconds = 3600) {
@@ -13,7 +13,8 @@ export async function consumeRateLimit(scope, identity, limit, windowSeconds = 3
 }
 
 function rateLimitKey(scope, identity) {
-  const digest = createHash('sha256').update(`${scope}:${identity}`).digest('hex')
+  const secret = process.env.RATE_LIMIT_SALT || process.env.SUPABASE_SERVICE_ROLE_KEY || 'local-development-only'
+  const digest = createHmac('sha256', secret).update(`${scope}:${identity}`).digest('hex')
   return `${scope}:${digest}`
 }
 

@@ -6,7 +6,7 @@ This document is a product draft for legal review and is not legal advice.
 
 ## Service
 
-Naijachow provides meal-planning, recipe organization, and social-content import tools. Meal plans, nutrition figures, health notes, recipes, availability, and preparation guidance may be incomplete or inaccurate and must be independently checked by the user.
+Naijachow provides meal-planning tools, estimated nutrition, meal swaps, and links to third-party cooking searches. Meal plans, nutrition figures, availability, and preparation guidance may be incomplete or inaccurate and must be independently checked by the user.
 
 ## Eligibility And Accounts
 
@@ -30,7 +30,7 @@ Features relying on third-party services may be delayed, unavailable, or changed
 
 ## Premium Billing
 
-Premium costs ₦2,500 per month and renews automatically through Bachs until cancelled. A cancellation requested for period end stops the next renewal while access continues through the current paid period. Refund eligibility is described in the separate refund policy.
+Premium costs ₦2,500 as a one time payment and provides access for 30 days. It does not renew automatically. Refund eligibility is described in the separate refund policy.
 
 ## Liability
 

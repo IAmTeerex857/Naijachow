@@ -1,14 +1,5 @@
-/* ===========================================================================
-   API client — thin wrappers over the Vercel Functions.
-   Contracts mirror NaijaPlate-PRD.md §4. All secrets live server-side.
-
-   Plans come from Azure OpenAI. When that call cannot be made — offline, rate
-   limited, a 502 — we fall back to the local builder rather than showing a
-   dead end, and mark the result so the UI can say where it came from. A 402
-   (premium length) is NOT a failure and is never silently absorbed: the user
-   asked for something the free tier does not include and needs to be told.
-   =========================================================================== */
-import { FOOD_BY_ID, pickMealImageFoodId } from '../data/foods'
+/* Thin browser wrappers over the Vercel Functions. All secrets stay server-side. */
+import { FOOD_BY_ID } from '../data/foods'
 import { accessToken } from './supabase'
 
 /** Raised for answers the user must see, rather than quietly work around. */
@@ -41,7 +32,7 @@ function names(ids) {
 }
 
 /** Generate a full meal plan. Server validation and guest limits must not be bypassed locally. */
-export async function generatePlan({ selectedIds, selectedDays, fastingDay, preferences, turnstileToken, signal }) {
+export async function generatePlan({ selectedIds, selectedDays, fastingDay, fastingType, preferences, turnstileToken, signal }) {
   try {
     const res = await fetch('/api/generate-plan', {
       method: 'POST',
@@ -50,6 +41,7 @@ export async function generatePlan({ selectedIds, selectedDays, fastingDay, pref
         selectedIds,
         selectedDays,
         fastingDay,
+        fasting_type: fastingType,
         preferences,
         turnstileToken: turnstileToken || null,
       }),
@@ -135,19 +127,7 @@ export async function createSubscriptionCheckout() {
   })
   const data = await res.json().catch(() => ({}))
   if (!res.ok || !data.checkout_url) throw new Error(data.error || 'Could not start checkout.')
-  return data.checkout_url
-}
-
-export async function cancelSubscription() {
-  const headers = await authenticatedHeaders()
-  const res = await fetch('/api/subscription', {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({ action: 'cancel' }),
-  })
-  const data = await res.json().catch(() => ({}))
-  if (!res.ok) throw new Error(data.error || 'Could not cancel the subscription.')
-  return data
+  return { checkoutUrl: data.checkout_url, checkoutId: data.checkout_id || null }
 }
 
 /* --- Image fetching -------------------------------------------------------
@@ -155,24 +135,27 @@ export async function cancelSubscription() {
    url is null and the caller shows the stripe placeholder.
 
    The cache stores the in-flight PROMISE, not the settled result: sixty dish
-   cards mount at once and several meals resolve to the same hero photo, so
+   cards mount at once and several cards can request the same image, so
    caching results alone let duplicate requests race past each other. */
 const imgCache = new Map()
+const IMAGE_CACHE_MS = 30 * 60 * 1000
 
 function fetchImage(key) {
-  if (imgCache.has(key)) return imgCache.get(key)
+  const cached = imgCache.get(key)
+  if (cached && cached.expiresAt > Date.now()) return cached.promise
 
   const pending = (async () => {
     try {
       const res = await fetch(`/api/get-food-image?q=${encodeURIComponent(key)}`)
-      const d = await res.json()
-      return { url: d.url || null, credit: d.credit || '', source: d.source || 'none' }
+      const d = await res.json().catch(() => ({}))
+      if (!res.ok) return { url: null, credit: '', sourceUrl: '', source: 'none' }
+      return { url: d.url || null, credit: d.credit || '', sourceUrl: d.sourceUrl || '', source: d.source || 'none' }
     } catch {
       return { url: null, credit: '', source: 'none' }
     }
   })()
 
-  imgCache.set(key, pending)
+  imgCache.set(key, { promise: pending, expiresAt: Date.now() + IMAGE_CACHE_MS })
   return pending
 }
 
@@ -181,20 +164,13 @@ export function fetchFoodImage(food) {
   return fetchImage(`food:${food.id}`)
 }
 
-/** Image for a plated meal combo. Tries the curated/auto-fetched `dish:<key>`
-    image first; if that's missing, falls back to the curated photo of the
-    meal's main component so a real image still shows. */
+/** Image for a plated meal combo. Component food images are intentionally not
+    used here: an exact, licensed combination is better than a misleading photo. */
 export async function fetchMealImage(meal) {
   const key = meal.dish_key || (meal.name || '').toLowerCase()
   if (key) {
     const primary = await fetchImage(`dish:${key}`)
-    if (primary.url) return primary
-  }
-
-  const heroId = pickMealImageFoodId(meal)
-  if (heroId) {
-    const hero = await fetchImage(`food:${heroId}`)
-    if (hero.url) return hero
+    if (primary.url && primary.source === 'wikimedia') return primary
   }
   return { url: null, credit: '', source: 'none' }
 }

@@ -2,11 +2,11 @@
 
 Effective date: To be confirmed
 
-This document applies to monthly Bachs subscriptions and requires legal review before publication.
+This document applies to one time Bachs payments for 30 days of Premium access and requires legal review before publication.
 
 ## Billing
 
-Subscriptions renew monthly until cancelled. Cancellation prevents the next renewal and does not normally remove access before the paid period ends.
+Premium does not renew automatically. Access normally remains available until the end of the purchased 30 day period.
 
 ## Refund Requests
 
@@ -18,4 +18,4 @@ Approved refunds are returned through the original payment method where supporte
 
 ## Exceptions
 
-The final policy must specify any statutory cooling-off rights, refund window, partial-month treatment, promotional subscriptions, chargeback handling, and local consumer-protection requirements.
+The final policy must specify any statutory cooling off rights, refund window, partial period treatment, promotional purchases, chargeback handling, and local consumer protection requirements.

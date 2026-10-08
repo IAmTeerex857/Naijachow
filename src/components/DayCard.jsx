@@ -3,11 +3,12 @@ import { dayCalories } from '../lib/nutrition'
 
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner']
 
-function FastingPanel() {
+function FastingPanel({ day }) {
   return (
     <div className="fasting">
-      <h3>Rest &amp; Renew</h3>
-      <p>Your fasting day — give your body and spirit a reset.</p>
+      <h3>Fasting day</h3>
+      <p>{day.fasting_message || 'No meals are scheduled today based on your selection.'}</p>
+      {day.scripture && <p><strong>Scripture:</strong> {day.scripture}</p>}
       <div className="fasting-tags">
         <span className="ftag water">Drink water</span>
         <span className="ftag walk">Light walk</span>
@@ -17,7 +18,21 @@ function FastingPanel() {
   )
 }
 
-export default function DayCard({ day, index, onSwap, swappingType }) {
+function FruitServing({ fruit }) {
+  return (
+    <div className="meal fruit-serving">
+      <div className="mealtype">FRUIT / SNACK</div>
+      <div className="mealname">{fruit.name}</div>
+      <p>{fruit.description}</p>
+      <div className="mealtags">
+        <span className="tag">{fruit.calories} kcal</span>
+        <span className="tag protein">{fruit.carbs}g carbs</span>
+      </div>
+    </div>
+  )
+}
+
+export default function DayCard({ day, index, onSwap, swappingType, planId, foodsToAvoid }) {
   // Summed from the meals on screen, so a swap keeps the header honest.
   const kcal = dayCalories(day)
 
@@ -25,24 +40,27 @@ export default function DayCard({ day, index, onSwap, swappingType }) {
     <div className="daycard">
       <div className="dayhead">
         <div className="dtitle">{day.day}</div>
-        {!day.is_fasting && <div className="dkcal">{kcal ? `~${kcal} kcal` : '—'}</div>}
+        {!day.is_fasting && <div className="dkcal">{kcal ? `~${kcal} kcal` : 'Not available'}</div>}
       </div>
 
       {day.is_fasting ? (
-        <FastingPanel />
+        <FastingPanel day={day} />
       ) : (
         <div className="meals">
           {MEAL_TYPES.map((type) =>
             day[type] ? (
               <MealSlot
-                key={type}
+                key={`${type}:${day[type].dish_key}`}
                 type={type}
                 meal={day[type]}
                 onSwap={(t) => onSwap(index, t)}
                 swapping={swappingType === type}
+                planId={planId}
+                foodsToAvoid={foodsToAvoid}
               />
             ) : null
           )}
+          {day.snack && <FruitServing fruit={day.snack} />}
         </div>
       )}
     </div>

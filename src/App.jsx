@@ -5,13 +5,13 @@ import {
   generatePlan,
   swapMeal,
   PremiumRequiredError,
-  cancelSubscription,
   createSubscriptionCheckout,
   getSubscriptionStatus,
 } from './lib/api'
 import { useTheme } from './lib/useTheme'
 import { useAuth } from './lib/useAuth'
-import { loadUserPreferences, saveMealPlan, saveUserPreferences, supabase } from './lib/supabase'
+import { loadMealPlan, loadUserPreferences, saveMealPlan, saveUserPreferences, supabase } from './lib/supabase'
+import { activePlanKey, isPlanId, PROTECTED_SCREENS, screenFromLocation, screenUrl } from './lib/navigation'
 import AppShell from './components/AppShell'
 import HomeScreen from './components/HomeScreen'
 import SelectScreen from './components/SelectScreen'
@@ -20,10 +20,11 @@ import PlanScreen from './components/PlanScreen'
 import ComingSoon from './components/ComingSoon'
 import AuthScreen from './components/AuthScreen'
 import PreferencesScreen from './components/PreferencesScreen'
-import ImportScreen from './components/ImportScreen'
 import SavedPlansScreen from './components/SavedPlansScreen'
 import AccountScreen from './components/AccountScreen'
+import PaymentSuccessModal from './components/PaymentSuccessModal'
 import { haptic } from './lib/haptics'
+import { FOOD_BY_ID } from './data/foods'
 
 const PremiumScreen = lazy(() => import('./components/PremiumScreen'))
 
@@ -35,36 +36,58 @@ const DEFAULT_PREFERENCES = {
   foodsToAvoid: '',
   clinicianInstructions: '',
   householdSize: 1,
-  budgetLevel: 'moderate',
   maxCookingMinutes: 45,
   healthConsent: false,
 }
 
 export default function App() {
   const { dark, toggle } = useTheme()
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
 
   // 'home' | 'preferences' | 'select' | 'loading' | 'auth' | 'plan' | 'saved' | 'vendor' | 'premium'
   const [screen, setScreen] = useState(
-    () => new URLSearchParams(window.location.search).has('subscription') ? 'premium' : 'home'
+    () => screenFromLocation(window.location, localStorage.getItem('np-plan-waiting') === 'true')
   )
   const [subscription, setSubscription] = useState(null)
   const [subscriptionLoading, setSubscriptionLoading] = useState(false)
   const [subscriptionActionLoading, setSubscriptionActionLoading] = useState(false)
+  const [paymentResult] = useState(() => new URLSearchParams(window.location.search).get('subscription'))
+  const [returnedCheckoutId] = useState(() =>
+    new URLSearchParams(window.location.search).get('checkout_id') || sessionStorage.getItem('np-checkout-id')
+  )
+  const [showPaymentSuccess, setShowPaymentSuccess] = useState(false)
   const [subscriptionMessage, setSubscriptionMessage] = useState(() => {
     const result = new URLSearchParams(window.location.search).get('subscription')
-    if (result === 'success') return 'Checkout completed. Premium unlocks after webhook confirmation.'
     if (result === 'cancelled') return 'Checkout was cancelled. You have not been charged.'
     return ''
   })
 
   // Select-screen state
-  const [selected, setSelected] = useState(() => new Set())
+  const [selected, setSelected] = useState(() => {
+    try {
+      const draft = JSON.parse(sessionStorage.getItem('np-plan-draft') || '{}')
+      return new Set((draft.selectedIds || []).filter((id) => FOOD_BY_ID[id]))
+    } catch {
+      return new Set()
+    }
+  })
   const [search, setSearch] = useState('')
   const [cat, setCat] = useState('all')
-  const [fasting, setFasting] = useState(false)
-  const [fday, setFday] = useState(null)
-  const [duration, setDuration] = useState(3)
+  const [fasting, setFasting] = useState(() => {
+    try { return Boolean(JSON.parse(sessionStorage.getItem('np-plan-draft') || '{}').fasting) } catch { return false }
+  })
+  const [fday, setFday] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem('np-plan-draft') || '{}').fastingDay || null } catch { return null }
+  })
+  const [fastingType, setFastingType] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem('np-plan-draft') || '{}').fastingType === 'spiritual' ? 'spiritual' : 'food' } catch { return 'food' }
+  })
+  const [duration, setDuration] = useState(() => {
+    try {
+      const days = Number(JSON.parse(sessionStorage.getItem('np-plan-draft') || '{}').duration)
+      return [3, 5, 7, 14, 30].includes(days) ? days : 3
+    } catch { return 3 }
+  })
   const [error, setError] = useState(null)
   const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES)
   const [turnstileToken, setTurnstileToken] = useState('')
@@ -72,6 +95,7 @@ export default function App() {
 
   // Plan state
   const [plan, setPlan] = useState(null)
+  const [planLoading, setPlanLoading] = useState(false)
   const [planDuration, setPlanDuration] = useState(3)
   const [swapping, setSwapping] = useState({ dayIndex: null, type: null })
   const [planWaitingForAuth, setPlanWaitingForAuth] = useState(
@@ -86,6 +110,8 @@ export default function App() {
   const generationRef = useRef({ id: 0, controller: null })
   const swapLockRef = useRef(false)
   const planVersionRef = useRef(0)
+  const activePlanRequestRef = useRef(0)
+  const premiumReturnRef = useRef('preferences')
   const preferencesDirtyRef = useRef(false)
   const previousUserIdRef = useRef(null)
   const [authReturn, setAuthReturn] = useState(
@@ -116,8 +142,71 @@ export default function App() {
   }, [user])
 
   useEffect(() => {
+    if (!user || paymentResult !== 'success' || !returnedCheckoutId) return
+    let active = true
+    let attempts = 0
+    let timer
+    const check = async () => {
+      attempts += 1
+      try {
+        const next = await getSubscriptionStatus()
+        if (!active) return
+        setSubscription(next)
+        if (next.active && next.subscription?.checkout_id === returnedCheckoutId) {
+          sessionStorage.removeItem('np-checkout-id')
+          setShowPaymentSuccess(true)
+          return
+        }
+      } catch {
+        // The normal status request already surfaces persistent failures.
+      }
+      if (active && attempts < 60) timer = window.setTimeout(check, 2000)
+    }
+    check()
+    return () => {
+      active = false
+      window.clearTimeout(timer)
+    }
+  }, [user, paymentResult, returnedCheckoutId])
+
+  useEffect(() => {
+    if (preferences.conditions.some((condition) => ['diabetes', 'kidney_condition', 'pregnancy'].includes(condition))) {
+      setFasting(false)
+      setFday(null)
+    }
+  }, [preferences.conditions])
+
+  useEffect(() => {
+    sessionStorage.setItem('np-plan-draft', JSON.stringify({
+      selectedIds: [...selected],
+      duration,
+      fasting,
+      fastingDay: fday,
+      fastingType,
+    }))
+  }, [duration, fasting, fastingType, fday, selected])
+
+  useEffect(() => {
     if (!new URLSearchParams(window.location.search).has('subscription')) return
-    window.history.replaceState({}, '', `${window.location.pathname}${window.location.hash}`)
+    if (paymentResult === 'cancelled') sessionStorage.removeItem('np-checkout-id')
+    window.history.replaceState({ screen }, '', `${window.location.pathname}${window.location.hash}`)
+  }, [])
+
+  useEffect(() => {
+    window.history.replaceState({ screen }, '', screenUrl(screen, window.location))
+    const handlePopState = () => {
+      generationRef.current.controller?.abort()
+      generationRef.current.id += 1
+      const next = screenFromLocation(window.location, localStorage.getItem('np-plan-waiting') === 'true')
+      if (next === 'loading') {
+        window.history.replaceState({ screen: 'select' }, '', screenUrl('select', window.location))
+        setScreen('select')
+        return
+      }
+      setScreen(next)
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
   }, [])
 
   useEffect(() => {
@@ -127,7 +216,9 @@ export default function App() {
       generationRef.current.controller?.abort()
       generationRef.current.id += 1
       planVersionRef.current += 1
+      activePlanRequestRef.current += 1
       setPlan(null)
+      setPlanLoading(false)
       setJustSaved(false)
       setPreferences(DEFAULT_PREFERENCES)
       preferencesDirtyRef.current = false
@@ -136,11 +227,71 @@ export default function App() {
   }, [user])
 
   useEffect(() => {
+    if (!user) return
+    const key = activePlanKey(user.id)
+
+    const restore = async (planId) => {
+      const requestId = activePlanRequestRef.current + 1
+      activePlanRequestRef.current = requestId
+      if (!isPlanId(planId)) {
+        if (planId) localStorage.removeItem(key)
+        setPlan(null)
+        setPlanLoading(false)
+        return
+      }
+      setPlanLoading(true)
+      try {
+        const restored = await loadMealPlan(user.id, planId)
+        if (activePlanRequestRef.current !== requestId) return
+        if (!restored) {
+          localStorage.removeItem(key)
+          setPlan(null)
+          return
+        }
+        setPlan(restored)
+        setSelected(new Set((restored.selectedIds || []).filter((id) => FOOD_BY_ID[id])))
+        setPlanDuration(restored.duration || restored.days?.length || 3)
+        setJustSaved(false)
+        planVersionRef.current += 1
+      } catch (loadError) {
+        if (activePlanRequestRef.current === requestId) {
+          setError({ message: loadError.message || 'Could not restore your active plan.' })
+        }
+      } finally {
+        if (activePlanRequestRef.current === requestId) setPlanLoading(false)
+      }
+    }
+
+    restore(localStorage.getItem(key))
+    const handleStorage = (event) => {
+      if (event.key === key) restore(event.newValue)
+    }
+    window.addEventListener('storage', handleStorage)
+    return () => {
+      activePlanRequestRef.current += 1
+      window.removeEventListener('storage', handleStorage)
+    }
+  }, [user])
+
+  useEffect(() => {
     const heading = document.querySelector('.main h1')
+    window.scrollTo({ top: 0 })
     if (!heading) return
     heading.setAttribute('tabindex', '-1')
     heading.focus({ preventScroll: true })
   }, [screen])
+
+  useEffect(() => {
+    if (authLoading || user || !PROTECTED_SCREENS.has(screen)) return
+    setAuthReturn(screen)
+    localStorage.setItem('np-auth-return', screen)
+    go('auth', { replace: true })
+  }, [authLoading, screen, user])
+
+  useEffect(() => {
+    if (authLoading || !user || screen !== 'plan' || plan || planLoading) return
+    go('preferences', { replace: true })
+  }, [authLoading, plan, planLoading, screen, user])
 
   useEffect(() => {
     if (!user || planWaitingForAuth) return
@@ -149,23 +300,39 @@ export default function App() {
       .then((saved) => {
         if (active && saved && !preferencesDirtyRef.current) setPreferences(saved)
       })
-      .catch(() => {})
+      .catch(() => {
+        if (active) setError({ message: 'We could not load your saved preferences. Please review them before continuing.' })
+      })
     return () => { active = false }
   }, [user, planWaitingForAuth])
 
   useEffect(() => {
     if (!user || planWaitingForAuth) return
     const destination = localStorage.getItem('np-auth-return')
-    if (destination && ['imports', 'saved', 'account', 'premium'].includes(destination)) {
+    if (destination && ['select', 'plan', 'saved', 'account', 'premium'].includes(destination)) {
       localStorage.removeItem('np-auth-return')
       setAuthReturn('home')
       go(destination)
     }
   }, [user, planWaitingForAuth])
 
-  function go(next) {
+  function go(next, { replace = false } = {}) {
+    if (next === screen) return
+    const method = replace ? 'replaceState' : 'pushState'
+    window.history[method]({ screen: next }, '', screenUrl(next, window.location))
     setScreen(next)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  function rememberPlan(nextPlan) {
+    activePlanRequestRef.current += 1
+    setPlanLoading(false)
+    setPlan(nextPlan)
+    if (nextPlan?.selectedIds?.length) {
+      setSelected(new Set(nextPlan.selectedIds.filter((id) => FOOD_BY_ID[id])))
+    }
+    if (user && isPlanId(nextPlan?.planId)) {
+      localStorage.setItem(activePlanKey(user.id), nextPlan.planId)
+    }
   }
 
   function navigate(next) {
@@ -173,14 +340,17 @@ export default function App() {
       generationRef.current.controller?.abort()
       generationRef.current.id += 1
     }
-    if (['imports', 'saved'].includes(next) && !user) {
+    if (next === 'saved' && !user) {
       setAuthReturn(next)
       localStorage.setItem('np-auth-return', next)
       go('auth')
       return
     }
+    if (next === 'premium' && ['preferences', 'select'].includes(screen)) {
+      premiumReturnRef.current = screen
+    }
     if (next === 'select') {
-      go('preferences')
+      go(plan ? 'plan' : 'preferences')
       return
     }
     go(next)
@@ -217,22 +387,11 @@ export default function App() {
     setSubscriptionActionLoading(true)
     setSubscriptionMessage('')
     try {
-      window.location.assign(await createSubscriptionCheckout())
+      const { checkoutUrl, checkoutId } = await createSubscriptionCheckout()
+      if (checkoutId) sessionStorage.setItem('np-checkout-id', checkoutId)
+      window.location.assign(checkoutUrl)
     } catch (checkoutError) {
       setSubscriptionMessage(checkoutError.message)
-      setSubscriptionActionLoading(false)
-    }
-  }
-
-  async function handleCancelSubscription() {
-    setSubscriptionActionLoading(true)
-    try {
-      const result = await cancelSubscription()
-      setSubscriptionMessage(result.message)
-      await refreshSubscription()
-    } catch (cancelError) {
-      setSubscriptionMessage(cancelError.message)
-    } finally {
       setSubscriptionActionLoading(false)
     }
   }
@@ -256,6 +415,7 @@ export default function App() {
         await saveUserPreferences(user.id, preferences)
       } catch (saveError) {
         setError({ message: saveError.message || 'Could not save your preferences.' })
+        return
       }
     }
     go('select')
@@ -274,6 +434,10 @@ export default function App() {
   /* Turning the switch on with no weekday chosen used to send fastingDay:null
      and silently produce a plan with no rest day. Default it here instead. */
   function toggleFasting() {
+    if (preferences.conditions.some((condition) => ['diabetes', 'kidney_condition', 'pregnancy'].includes(condition))) {
+      setFasting(false)
+      return
+    }
     setFasting((on) => {
       const next = !on
       if (next && !fday) setFday(duration >= 2 ? WEEKDAYS[1] : WEEKDAYS[0])
@@ -302,15 +466,16 @@ export default function App() {
         selectedIds: ids,
         selectedDays: duration,
         fastingDay: fasting ? fday : null,
+        fastingType: fasting ? fastingType : 'food',
         preferences,
         turnstileToken,
         signal: controller.signal,
       })
       if (generationRef.current.id !== requestId) return
-      setPlan(data)
+      rememberPlan({ ...data, selectedIds: ids })
       planVersionRef.current += 1
       setPlanDuration(duration)
-      go('plan')
+      go('plan', { replace: true })
     } catch (e) {
       if (generationRef.current.id !== requestId || e.name === 'AbortError') return
       setTurnstileToken('')
@@ -320,14 +485,14 @@ export default function App() {
           localStorage.setItem('np-plan-waiting', 'true')
           setPlanWaitingForAuth(true)
         }
-        go('auth')
+        go('auth', { replace: true })
         return
       }
       setError({
         message: e.message || 'Could not generate plan. Please try again.',
         premium: e instanceof PremiumRequiredError,
       })
-      go('select')
+      go('select', { replace: true })
     }
   }
 
@@ -336,7 +501,7 @@ export default function App() {
     claimStarted.current = true
     try {
       const claimed = await claimGeneratedPlan()
-      setPlan(claimed)
+      rememberPlan(claimed)
       planVersionRef.current += 1
       setPlanDuration(claimed.days?.length || duration)
       localStorage.removeItem('np-plan-waiting')
@@ -383,7 +548,7 @@ export default function App() {
             const nextDay = { ...currentDay, [type]: newMeal }
             nextDay.total_calories = MEAL_TYPES.reduce(
               (sum, mealType) => sum + (Number(nextDay[mealType]?.calories) || 0),
-              0
+              Number(nextDay.snack?.calories) || 0
             )
             return nextDay
           })
@@ -419,7 +584,7 @@ export default function App() {
   }
 
   function openSavedPlan(savedPlan) {
-    setPlan(savedPlan)
+    rememberPlan(savedPlan)
     planVersionRef.current += 1
     setPlanDuration(savedPlan.days?.length || 3)
     setJustSaved(true)
@@ -433,9 +598,10 @@ export default function App() {
       dark={dark}
       onToggleTheme={toggle}
       user={user}
-      onSignOut={handleSignOut}
+      premiumActive={user ? subscription?.active : false}
       onAccount={() => go('account')}
     >
+      {showPaymentSuccess && <PaymentSuccessModal onClose={() => setShowPaymentSuccess(false)} />}
       {screen === 'home' && (
         <HomeScreen onStart={() => go('preferences')} onSeeSaved={() => navigate('saved')} />
       )}
@@ -463,13 +629,16 @@ export default function App() {
           setCat={setCat}
           fasting={fasting}
           onToggleFasting={toggleFasting}
+          fastingType={fastingType}
+          setFastingType={setFastingType}
           fday={fday}
           setFday={setFday}
           duration={duration}
           setDuration={chooseDuration}
           onGenerate={handleGenerate}
-          onPremium={() => go('premium')}
+          onPremium={() => navigate('premium')}
           premiumActive={Boolean(subscription?.active)}
+          fastingAllowed={!preferences.conditions.some((condition) => ['diabetes', 'kidney_condition', 'pregnancy'].includes(condition))}
           error={error}
           signedIn={Boolean(user)}
           onTurnstileToken={setTurnstileToken}
@@ -478,9 +647,9 @@ export default function App() {
         />
       )}
 
-      {screen === 'loading' && <LoadingScreen />}
+      {(screen === 'loading' || (PROTECTED_SCREENS.has(screen) && authLoading) || (screen === 'plan' && user && (!plan || planLoading))) && <LoadingScreen />}
 
-      {screen === 'auth' && (
+      {(screen === 'auth' || (PROTECTED_SCREENS.has(screen) && !authLoading && !user)) && (
         <AuthScreen
           planWaiting={planWaitingForAuth}
           user={user}
@@ -488,9 +657,7 @@ export default function App() {
         />
       )}
 
-      {screen === 'imports' && user && <ImportScreen />}
-
-      {screen === 'account' && user && (
+      {screen === 'account' && user && !authLoading && (
         <AccountScreen
           user={user}
           onDeleted={() => {
@@ -498,6 +665,7 @@ export default function App() {
             generationRef.current.id += 1
             planVersionRef.current += 1
             setPlan(null)
+            localStorage.removeItem(activePlanKey(user.id))
             setPreferences(DEFAULT_PREFERENCES)
             preferencesDirtyRef.current = false
             go('home')
@@ -507,7 +675,7 @@ export default function App() {
         />
       )}
 
-      {screen === 'plan' && plan && (
+      {screen === 'plan' && plan && !planLoading && (
         <PlanScreen
           plan={plan}
           duration={planDuration}
@@ -517,11 +685,12 @@ export default function App() {
           onSave={handleSavePlan}
           justSaved={justSaved}
           error={error}
+          foodsToAvoid={preferences.foodsToAvoid}
         />
       )}
 
       {screen === 'saved' && user && (
-        <SavedPlansScreen onOpen={openSavedPlan} onNew={() => go('preferences')} />
+        <SavedPlansScreen onOpen={openSavedPlan} onNew={() => navigate('select')} />
       )}
 
       {screen === 'vendor' && (
@@ -543,9 +712,7 @@ export default function App() {
             message={subscriptionMessage}
             onCheckout={handleSubscribe}
             onSignIn={handleSubscribe}
-            onCancel={handleCancelSubscription}
-            onRefresh={refreshSubscription}
-            onPlan={() => go('preferences')}
+            onPlan={() => go(premiumReturnRef.current)}
             dark={dark}
           />
         </Suspense>

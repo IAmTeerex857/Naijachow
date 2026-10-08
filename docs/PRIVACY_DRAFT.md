@@ -10,13 +10,13 @@ This document is a product draft for legal review and is not legal advice.
 - Meal preferences, disliked foods, schedule, budget, and household size
 - Optional health conditions, allergies, intolerances, and clinician-provided dietary instructions
 - Selected dishes, generated plans, saved plans, and swaps
-- TikTok or Instagram URLs submitted by users, associated metadata, transcripts, extracted recipes, and review decisions
+- Public cooking tutorial URLs, transcripts, and extracted recipe guides selected automatically for planned meals
 - Technical security, error, and usage records
 - Subscription and transaction references after payments launch
 
 ## Purposes
 
-We process data to authenticate users, generate and save plans, apply user preferences, import requested content, prevent abuse, support users, improve reliability, and meet legal obligations.
+We process data to authenticate users, generate and save plans, apply preferences, source recipe guidance, prevent abuse, support users, improve reliability, and meet legal obligations.
 
 ## Sensitive Health Information
 
@@ -24,11 +24,11 @@ Health information is optional and used only for user-requested meal-planning co
 
 ## Service Providers
 
-Current or planned providers include Supabase, Vercel, Azure OpenAI, Trigger.dev, Supadata, Resend, and Bachs. The final notice must identify legal entities, processing locations, retention terms, and transfer safeguards.
+Current or planned providers include Supabase, Vercel, Azure OpenAI, Supadata, Resend, and Bachs. The final notice must identify legal entities, processing locations, retention terms, and transfer safeguards.
 
-## Social Content
+## Recipe Sources
 
-Imported social content is private by default. We retain source attribution and provenance. Users must explicitly choose to publish or share imported recipes if public sharing is introduced.
+Naijachow automatically locates public cooking tutorials and retains source attribution, transcript-derived recipe data, and provenance. Users do not upload or publish social content through Naijachow.
 
 ## Retention
 

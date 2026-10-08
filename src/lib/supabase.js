@@ -21,7 +21,6 @@ export async function saveUserPreferences(userId, preferences) {
     user_id: userId,
     goal: preferences.goal,
     household_size: preferences.householdSize,
-    budget_level: preferences.budgetLevel,
     max_cooking_minutes: preferences.maxCookingMinutes,
   })
   if (preferencesError) throw preferencesError
@@ -57,9 +56,8 @@ export async function loadUserPreferences(userId) {
   if (preferencesError) throw preferencesError
   if (healthError) throw healthError
   return {
-    goal: preferences?.goal || 'balanced',
+    goal: preferences?.goal === 'budget' ? 'balanced' : (preferences?.goal || 'balanced'),
     householdSize: preferences?.household_size || 1,
-    budgetLevel: preferences?.budget_level || 'moderate',
     maxCookingMinutes: preferences?.max_cooking_minutes || 45,
     conditions: health?.conditions || [],
     foodsToAvoid: (health?.excluded_foods || []).join(', '),
@@ -70,9 +68,30 @@ export async function loadUserPreferences(userId) {
 
 export async function saveMealPlan(planId, plan) {
   if (!supabase || !planId) throw new Error('This plan cannot be saved yet.')
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('meal_plans')
     .update({ status: 'saved', saved_at: new Date().toISOString(), plan_data: plan })
     .eq('id', planId)
+    .select('id')
+    .maybeSingle()
   if (error) throw error
+  if (!data) throw new Error('This plan could not be found or is no longer available.')
+}
+
+export async function loadMealPlan(userId, planId) {
+  if (!supabase || !userId || !planId) return null
+  const { data, error } = await supabase
+    .from('meal_plans')
+    .select('id,duration_days,selected_dish_ids,plan_data')
+    .eq('id', planId)
+    .eq('user_id', userId)
+    .maybeSingle()
+  if (error) throw error
+  if (!data) return null
+  return {
+    ...data.plan_data,
+    planId: data.id,
+    selectedIds: data.selected_dish_ids || [],
+    duration: data.duration_days,
+  }
 }

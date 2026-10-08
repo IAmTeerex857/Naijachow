@@ -88,7 +88,6 @@ export async function saveGeneratedPlan({ user, guestId, input, plan }) {
     : {
         goal: input.preferences.goal,
         householdSize: input.preferences.householdSize,
-        budgetLevel: input.preferences.budgetLevel,
         maxCookingMinutes: input.preferences.maxCookingMinutes,
         healthConsent: false,
       }

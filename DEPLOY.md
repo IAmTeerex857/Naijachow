@@ -2,7 +2,7 @@
 
 ## 1. Rotate credentials
 
-Credentials were previously placed in the tracked `.env.example`. Rotate the Supabase service-role, Supadata, Trigger.dev, and Azure OpenAI keys before deployment. Put replacements in `.env.local`, Vercel Environment Variables, and Trigger.dev Environment Variables.
+Credentials were previously placed in the tracked `.env.example`. Rotate the Supabase service-role, Supadata, and Azure OpenAI keys before deployment. Put replacements in `.env.local` and Vercel Environment Variables.
 
 ## 2. Link Supabase
 
@@ -21,18 +21,7 @@ In Supabase Authentication settings:
 - Add localhost and Vercel preview URLs to Redirect URLs during development.
 - Disable password signup if magic-link-only access is required.
 
-## 3. Configure Trigger.dev
-
-Set `TRIGGER_SECRET_KEY`, `SUPADATA_API_KEY`, Supabase server credentials, and Azure OpenAI credentials in the Trigger.dev environment.
-
-```bash
-npm run trigger:dev
-npm run trigger:deploy
-```
-
-Connect Trigger.dev's GitHub integration after the repository is connected to Vercel.
-
-## 4. Connect Vercel
+## 3. Connect Vercel
 
 1. Import `IAmTeerex857/Naijachow` in Vercel.
 2. Select the Vite framework preset.
@@ -40,11 +29,11 @@ Connect Trigger.dev's GitHub integration after the repository is connected to Ve
 4. Add every variable from `.env.example` with the appropriate environment scope.
 5. Deploy once and copy the production URL into `APP_URL` and Supabase Auth settings.
 
-Set `APP_URL=https://naijachow.vercel.app`, add the live `BACHS_SECRET_KEY`, `BACHS_WEBHOOK_SECRET`, and optional Bachs overrides, then register `https://naijachow.vercel.app/api/bachs-webhook` for `customer.subscription.created`, `customer.subscription.updated`, and `customer.subscription.deleted`. Apply and review the subscription migration before enabling checkout.
+Set `APP_URL=https://www.naijachow.xyz`, add the live `BACHS_SECRET_KEY` and `BACHS_WEBHOOK_SECRET`, then register `https://www.naijachow.xyz/api/bachs-webhook` for `collection.succeeded`. Apply and review the payment migration before enabling checkout.
 
 Pushes to `main` will deploy production. Pull requests will receive preview deployments.
 
-## 5. Required checks
+## 4. Required checks
 
 Run before deployment:
 
@@ -55,7 +44,8 @@ npm run check
 
 `npx vercel build` requires the local repository to be linked with `vercel link` or authenticated through `VERCEL_TOKEN`.
 
-## 6. Deferred integration
+## 5. Required external setup
 
-- Resend transactional email templates
-- A durable global request quota beyond the one-use guest database record
+- Verify `naijachow.xyz` in Resend for `hello@naijachow.xyz`.
+- Turnstile is optional while the user base is small; durable guest quotas remain active without it.
+- Confirm the `naijachow-operational-retention` Supabase Cron job after applying migrations.

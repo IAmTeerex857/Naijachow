@@ -17,7 +17,7 @@ async function authenticatedRequest(path, options = {}) {
   return response
 }
 
-export default function AccountScreen({ user, onDeleted, onEditPreferences }) {
+export default function AccountScreen({ user, onDeleted, onEditPreferences, onSignOut }) {
   const [confirmation, setConfirmation] = useState('')
   const [status, setStatus] = useState('idle')
   const [message, setMessage] = useState('')
@@ -64,27 +64,34 @@ export default function AccountScreen({ user, onDeleted, onEditPreferences }) {
       <header className="screenhead">
         <p className="eyebrow">ACCOUNT & PRIVACY</p>
         <h1 id="account-title">Your account</h1>
-        <p>{user.email}</p>
       </header>
 
       <div className="account-grid">
+        <article className="answer-card account-session-card">
+          <div>
+            <p className="eyebrow">SIGNED IN AS</p>
+            <h2>{user.email}</h2>
+          </div>
+          <button className="btn btn-outline" onClick={onSignOut}>Sign out</button>
+        </article>
+
         <article className="answer-card">
           <h2>Planning preferences</h2>
-          <p>Update your goals, health considerations, food avoidances, budget, and cooking time.</p>
+          <p>Update your goals, health considerations, food avoidances, and cooking time.</p>
           <button className="btn btn-outline" onClick={onEditPreferences}>Edit preferences</button>
         </article>
 
         <article className="answer-card">
           <h2>Download your data</h2>
-          <p>Export your profile, health preferences, plans, recipes, imports, and subscription records.</p>
+          <p>Export your profile, health preferences, meal plans, and payment records.</p>
           <button className="btn btn-outline" onClick={exportData} disabled={status !== 'idle'}>
-            {status === 'exporting' ? 'Preparing...' : 'Download JSON'}
+            {status === 'exporting' ? 'Preparing...' : 'Download'}
           </button>
         </article>
 
         <article className="answer-card danger-card">
           <h2>Delete account</h2>
-          <p>This permanently removes your account, private imports, recipes, health profile, and saved plans. Any Premium subscription is cancelled immediately.</p>
+          <p>This permanently removes your account, health profile, saved plans, and private files. Payment records may be retained where required for security, disputes, or legal obligations.</p>
           <label className="answer-field">
             Type DELETE to confirm
             <input value={confirmation} onChange={(event) => setConfirmation(event.target.value)} />
