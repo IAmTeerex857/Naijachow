@@ -84,7 +84,7 @@ export default function ImageTile({ name, loader, className = '', placeholder = 
         </span>
       )}
       {!src && partCredits.length > 0 && <span className="image-credit">Photos: {partCredits.join(' · ')}</span>}
-      {!parts.length && (!src && placeholder === 'meal'
+      {!src && !parts.length && (placeholder === 'meal'
         ? <span className="meal-image-placeholder"><small>MEAL</small><strong>{name || 'Planned meal'}</strong></span>
         : <span className="fname" aria-hidden="true">{file}</span>)}
       {children}

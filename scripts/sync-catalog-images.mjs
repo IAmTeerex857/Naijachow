@@ -72,7 +72,7 @@ async function commonsInfo(titles) {
       const image = page.imageinfo?.[0]
       if (!image) continue
       const license = plain(image.extmetadata?.LicenseShortName?.value)
-      const creator = plain(image.extmetadata?.Artist?.value).slice(0, 80) || 'Unknown creator'
+      const creator = plain(image.extmetadata?.Artist?.value).slice(0, 80)
       info.set(normalized[page.title] || page.title, {
         title: page.title,
         license,
@@ -106,8 +106,9 @@ for (const key of Object.keys(manifest.meals)) if (!mealNames[key]) throw new Er
 
 const info = await commonsInfo([...new Set([...Object.values(manifest.foods), ...Object.values(manifest.meals)])])
 const problems = [...Object.values(manifest.foods), ...Object.values(manifest.meals)]
-  .filter((title) => !info.get(title) || !ALLOWED_LICENSE.test(info.get(title).license))
-if (problems.length) throw new Error(`Missing or non-free Commons files:\n${problems.join('\n')}`)
+  .filter((title) => !info.get(title) || !ALLOWED_LICENSE.test(info.get(title).license) || !info.get(title).creator)
+// Every licence we accept requires naming the creator, so a file without one cannot be used.
+if (problems.length) throw new Error(`Missing, non-free, or uncredited Commons files:\n${problems.join('\n')}`)
 
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
 
