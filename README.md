@@ -66,7 +66,9 @@ Apply migrations through the Supabase CLI only after reviewing them against the 
 
 ## Images
 
-Food-selection cards use curated catalogue imagery. Generated meals show only an exact licensed combination image when one is available; otherwise they use a named placeholder instead of a misleading ingredient photo. Every new asset should include provenance, licensing, attribution, and review status.
+Every photo is a reviewed, watermark-free Wikimedia Commons image under CC0, public domain, CC BY, or CC BY-SA, listed by file title in `scripts/catalog-images.json`. `node scripts/sync-catalog-images.mjs` reads each file's licence and creator from Commons, copies the photo into the public `catalog-assets` bucket, and registers it in `assets` (food cards) or `meal_media` (exact meal photos) with its attribution. Run it with `--dry-run` first. The scraped `image_cache` table is no longer read.
+
+Generated meals show the exact meal photo when one exists. Otherwise they show the photos of up to three components side by side, each labelled, so no single ingredient photo stands in for the whole meal. To add a photo, review it for accuracy and watermarks, add its Commons file title to the manifest, and run the sync script.
 
 ## Security notes
 

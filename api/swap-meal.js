@@ -7,6 +7,7 @@ import { authenticatedUser, supabaseAdmin } from '../server/supabaseAdmin.js'
 import { consumeRateLimit, releaseRateLimit } from '../server/rateLimit.js'
 import { loadApprovedComboCandidates } from '../server/approvedCombos.js'
 import { candidatesForSlot, swapCandidates } from '../server/planPolicy.js'
+import { mealNutrition } from '../server/mealNutrition.js'
 
 export default async function handler(req, res) {
   if (!requireMethod(req, res, ['POST'])) return
@@ -43,11 +44,14 @@ export default async function handler(req, res) {
   if (healthError || preferencesError) {
     return sendJson(res, 503, { error: 'Could not verify your saved food exclusions.' })
   }
+  // The request's list only adds exclusions. It is the only source for users who
+  // named foods to avoid without consenting to store a health profile.
   const storedExclusions = [
     ...(healthProfile?.allergies || []),
     ...(healthProfile?.intolerances || []),
     ...(healthProfile?.excluded_foods || []),
     ...(preferences?.disliked_foods || []),
+    input.foodsToAvoid,
   ].join(',')
 
   let approved = []
@@ -84,7 +88,11 @@ export default async function handler(req, res) {
 
   try {
     const raw = await generateStructuredJson({
-      prompt: `Use exactly this candidate_key for ${input.mealType}: ${JSON.stringify(candidates[0])}. Add concise Nigerian serving context and approximate nutrition for one normal serving.`,
+      prompt: `Use exactly this candidate_key for ${input.mealType}: ${JSON.stringify({
+        key: candidates[0].key,
+        name: candidates[0].name,
+        serving: mealNutrition(candidates[0].food_ids).serving,
+      })}. Write a one or two sentence description of how it is served, consistent with the stated portion. Do not use em dash or en dash characters.`,
       schemaName: 'naijaplate_meal_swap',
       schema: MODEL_MEAL_JSON_SCHEMA,
       maxTokens: 700,

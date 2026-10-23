@@ -1,5 +1,8 @@
 import MealSlot from './MealSlot'
+import ImageTile from './ImageTile'
 import { dayCalories } from '../lib/nutrition'
+import { fetchFoodImage } from '../lib/api'
+import { FOOD_BY_ID } from '../data/foods'
 
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner']
 
@@ -19,8 +22,12 @@ function FastingPanel({ day }) {
 }
 
 function FruitServing({ fruit }) {
+  const fruitId = fruit.food_ids?.[0]
   return (
     <div className="meal fruit-serving">
+      {FOOD_BY_ID[fruitId] && (
+        <ImageTile name={fruit.name} loader={() => fetchFoodImage(FOOD_BY_ID[fruitId])} placeholder="meal" />
+      )}
       <div className="mealtype">FRUIT / SNACK</div>
       <div className="mealname">{fruit.name}</div>
       <p>{fruit.description}</p>

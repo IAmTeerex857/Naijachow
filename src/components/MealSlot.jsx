@@ -72,6 +72,7 @@ export default function MealSlot({ meal, type, onSwap, swapping }) {
             <strong>Carbs</strong> {meal.carbs ?? 'N/A'}g, <strong>Fat</strong> {meal.fat ?? 'N/A'}g,{' '}
             <strong>Protein</strong> {meal.protein ?? 'N/A'}g
           </div>
+          {meal.serving && <div className="row"><strong>Portion</strong> {meal.serving} (estimate)</div>}
           <div>{meal.description || 'Approximate nutrition for one serving.'}</div>
         </div>
       )}

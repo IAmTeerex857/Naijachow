@@ -249,7 +249,6 @@ export default function App() {
           return
         }
         setPlan(restored)
-        setSelected(new Set((restored.selectedIds || []).filter((id) => FOOD_BY_ID[id])))
         setPlanDuration(restored.duration || restored.days?.length || 3)
         setJustSaved(false)
         planVersionRef.current += 1
@@ -326,10 +325,9 @@ export default function App() {
   function rememberPlan(nextPlan) {
     activePlanRequestRef.current += 1
     setPlanLoading(false)
+    // The selection screen is the user's draft for the next plan. Loading,
+    // claiming, or opening a plan must not tick foods on their behalf.
     setPlan(nextPlan)
-    if (nextPlan?.selectedIds?.length) {
-      setSelected(new Set(nextPlan.selectedIds.filter((id) => FOOD_BY_ID[id])))
-    }
     if (user && isPlanId(nextPlan?.planId)) {
       localStorage.setItem(activePlanKey(user.id), nextPlan.planId)
     }
@@ -679,7 +677,10 @@ export default function App() {
         <PlanScreen
           plan={plan}
           duration={planDuration}
-          onStartOver={() => go('select')}
+          onStartOver={() => {
+            setSelected(new Set())
+            go('select')
+          }}
           onSwap={handleSwap}
           swapping={swapping}
           onSave={handleSavePlan}

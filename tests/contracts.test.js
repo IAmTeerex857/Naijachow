@@ -74,15 +74,12 @@ describe('API contracts', () => {
     expect(() => swapRequestSchema.parse({ planId: 'bad', dayIndex: -1, mealType: 'snack', foodsToAvoid: '' })).toThrow()
   })
 
-  it('rejects implausible nutrition', () => {
+  it('does not accept nutrition from the model', () => {
     expect(() =>
       modelMealSchema.parse({
         candidate_key: 'eba+egusi',
         description: 'One serving',
-        calories: -1,
-        protein: 20,
-        carbs: 40,
-        fat: 10,
+        calories: 600,
       })
     ).toThrow()
   })

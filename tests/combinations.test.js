@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { buildCandidates, candidateMap, excludeAvoidedCandidates, preferUnusedCandidates } from '../server/combinations.js'
+import { buildCandidates, candidateMap, excludeAvoidedCandidates, materializeMeal, preferUnusedCandidates } from '../server/combinations.js'
+import { CURATED_MEALS } from '../server/curatedMeals.js'
+import { FOODS } from '../src/data/foods.js'
 
 describe('realistic meal candidates', () => {
   it('pairs soup with swallow at lunch but does not offer it for dinner', () => {
@@ -28,6 +30,30 @@ describe('realistic meal candidates', () => {
     const candidates = buildCandidates(['jollof', 'friedrice', 'grilledchicken'], 'lunch')
     const filtered = excludeAvoidedCandidates(candidates, 'chicken')
     expect(filtered.every((candidate) => !candidate.food_ids.includes('grilledchicken'))).toBe(true)
+  })
+
+  it('excludes dishes that contain an avoided ingredient their name does not reveal', () => {
+    const lunch = candidateMap([]).lunch
+    const breakfast = candidateMap([]).breakfast
+    const keys = (candidates) => candidates.flatMap((candidate) => candidate.food_ids)
+    expect(keys(excludeAvoidedCandidates(breakfast, 'beans'))).not.toContain('akara')
+    expect(keys(excludeAvoidedCandidates(lunch, 'no beans'))).not.toContain('ewedugbegiri')
+    expect(keys(excludeAvoidedCandidates(lunch, 'eggs'))).not.toContain('coleslaw')
+    expect(keys(excludeAvoidedCandidates(lunch, 'wheat'))).not.toContain('semovita')
+    expect(keys(excludeAvoidedCandidates(lunch, 'shellfish'))).not.toContain('afang')
+    expect(keys(excludeAvoidedCandidates(breakfast, 'gluten and dairy'))).not.toContain('custard')
+  })
+
+  it('gives every non-fruit catalogue food at least one curated meal', () => {
+    const covered = new Set(CURATED_MEALS.flatMap((meal) => meal.ids))
+    expect(FOODS.filter((food) => food.cat !== 'fruit' && !covered.has(food.id)).map((food) => food.id)).toEqual([])
+  })
+
+  it('takes nutrition from the server portion table rather than the model', () => {
+    const [candidate] = buildCandidates(['egusi', 'eba'], 'lunch').filter((item) => item.key === 'egusi+eba')
+    const meal = materializeMeal(candidate, { candidate_key: 'egusi+eba', description: 'Served hot.', calories: 5 })
+    expect(meal).toMatchObject({ calories: 700, protein: 21, serving: '1 cup egusi soup with meat, 1 cup eba' })
+    expect(CURATED_MEALS.every((item) => materializeMeal({ ...item, food_ids: item.ids }, { description: '' }).calories > 0)).toBe(true)
   })
 
   it('never creates arbitrary yam and meat pairings', () => {

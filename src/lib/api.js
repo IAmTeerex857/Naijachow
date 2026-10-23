@@ -164,15 +164,22 @@ export function fetchFoodImage(food) {
   return fetchImage(`food:${food.id}`)
 }
 
-/** Image for a plated meal combo. Component food images are intentionally not
-    used here: an exact, licensed combination is better than a misleading photo. */
+/** Image for a plated meal combo. An exact, licensed combination photo wins.
+    Otherwise each component's catalogue photo is returned as a labelled part,
+    so the tile shows what is on the plate without passing one ingredient off
+    as the whole meal. */
 export async function fetchMealImage(meal) {
   const key = meal.dish_key || (meal.name || '').toLowerCase()
   if (key) {
     const primary = await fetchImage(`dish:${key}`)
     if (primary.url && primary.source === 'wikimedia') return primary
   }
-  return { url: null, credit: '', source: 'none' }
+  const components = (meal.food_ids || []).filter((id) => FOOD_BY_ID[id]).slice(0, 3)
+  const images = await Promise.all(components.map((id) => fetchImage(`food:${id}`)))
+  const parts = components
+    .map((id, index) => ({ id, name: FOOD_BY_ID[id].name, url: images[index].url, credit: images[index].credit }))
+    .filter((part) => part.url)
+  return { url: null, credit: '', source: parts.length ? 'components' : 'none', parts }
 }
 
 export { names as dishNames }

@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { resolveSelectedFoods } from '../server/catalogue.js'
 import { candidateMap, excludeAvoidedCandidates, materializeMeal, mergeCandidateMaps } from '../server/combinations.js'
 import { generateRequestSchema, MODEL_PLAN_JSON_SCHEMA, modelPlanSchema } from '../server/contracts.js'
@@ -15,17 +16,28 @@ import { loadApprovedComboCandidates } from '../server/approvedCombos.js'
 import { subscriptionStatus } from '../server/bachs.js'
 import { buildSchedule, chunkSchedule } from '../server/planSchedule.js'
 import { addFruitToPlan, assignMealCandidates, candidatesForSlot } from '../server/planPolicy.js'
+import { mealNutrition } from '../server/mealNutrition.js'
 
 const MAX_FREE_DAYS = 7
 const MEAL_TYPES = ['breakfast', 'lunch', 'dinner']
+
+function assignedMeals(schedule, candidates) {
+  const meals = new Map()
+  for (const day of schedule) {
+    for (const type of MEAL_TYPES) {
+      const candidate = candidates[type].find((item) => item.key === day[`${type}_key`])
+      if (candidate) meals.set(candidate.key, { key: candidate.key, name: candidate.name, serving: mealNutrition(candidate.food_ids).serving })
+    }
+  }
+  return [...meals.values()]
+}
 
 function generationPrompt(schedule, candidates, preferences) {
   return `Build this exact schedule: ${JSON.stringify(schedule)}.
 For each non fasting meal, use the breakfast_key, lunch_key, and dinner_key assigned in the schedule as its candidate_key. Never substitute or create a key. The server has already assigned meals for variety and meal-family compatibility.
 
-Approved breakfast candidates: ${JSON.stringify(candidates.breakfast)}
-Approved lunch candidates: ${JSON.stringify(candidates.lunch)}
-Approved dinner candidates: ${JSON.stringify(candidates.dinner)}
+Assigned meals and their portions: ${JSON.stringify(assignedMeals(schedule, candidates))}
+For each meal write a one or two sentence description of how it is served, consistent with the stated portion. The server supplies nutrition.
 
 User planning context: ${JSON.stringify({
     goal: preferences.goal,
@@ -39,7 +51,7 @@ User planning context: ${JSON.stringify({
 Use the planning context only for neutral serving descriptions. Avoided foods have already been filtered by the server. Do not diagnose, promise treatment, claim suitability for a condition, or add medical advice.
 Do not use em dash or en dash characters in any text.
 
-For fasting days, return null for breakfast, lunch, and dinner. Nutrition values are approximate values for one normal serving.`
+For fasting days, return null for breakfast, lunch, and dinner.`
 }
 
 export default async function handler(req, res) {
@@ -128,7 +140,7 @@ export default async function handler(req, res) {
   const schedule = buildSchedule(input.selectedDays, input.fastingDay, input.fasting_type)
   let assignedSchedule
   try {
-    assignedSchedule = assignMealCandidates(schedule, candidates)
+    assignedSchedule = assignMealCandidates(schedule, candidates, randomUUID())
   } catch (error) {
     await releaseGuestReservation(guest?.id)
     if (user) await releaseRateLimit('generation-user', user.id).catch(() => {})

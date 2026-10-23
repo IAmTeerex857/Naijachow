@@ -9,12 +9,9 @@
    Fried Plantain and Coleslaw were recategorised (carb / fruit) — they were
    filed under Protein, which skewed the pairing prompt and the nutrition read.
 
-   ✅ IDS VERIFIED against the live Supabase image_cache (image_cache_rows.csv,
-   2026-07). All 60 `food:<id>` keys resolve to a curated image. The 5 keys that
-   use a longer name in Supabase are: whiterice, wheatswallow, boiledyam,
-   friedplantain, stew (Tomato Stew). Extra curated rows not used as cards:
-   food:stew is reused for Tomato Stew; food:pepperchicken is a leftover from a
-   removed item and is intentionally unused.
+   Card photos are licensed Wikimedia Commons images listed in
+   scripts/catalog-images.json and published to the public catalog-assets bucket
+   by scripts/sync-catalog-images.mjs. Every id here must have an entry there.
    =========================================================================== */
 
 export const CATEGORIES = [

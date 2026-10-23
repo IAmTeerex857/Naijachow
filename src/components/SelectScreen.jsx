@@ -71,7 +71,7 @@ export default function SelectScreen({
         <div className="screen-head">
           <div className="eyebrow">STEP 01 SELECT</div>
           <h1>What can you cook?</h1>
-          <p>Pick at least 3 favourites from this starter list. We will use them as anchors and add realistic complementary foods.</p>
+          <p>Pick at least 3 favourites from this starter list. We will use them as anchors and add realistic complementary foods. Fruits you pick become your daily snack.</p>
         </div>
 
         {error && (

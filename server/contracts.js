@@ -42,10 +42,6 @@ export const modelMealSchema = z
   .object({
     candidate_key: z.string().min(1).max(100),
     description: z.string().min(1).max(300),
-    calories: z.number().int().min(0).max(2500),
-    protein: z.number().int().min(0).max(250),
-    carbs: z.number().int().min(0).max(400),
-    fat: z.number().int().min(0).max(200),
   })
   .strict()
 
@@ -88,14 +84,10 @@ export const MODEL_PLAN_JSON_SCHEMA = {
     meal: {
       type: 'object',
       additionalProperties: false,
-      required: ['candidate_key', 'description', 'calories', 'protein', 'carbs', 'fat'],
+      required: ['candidate_key', 'description'],
       properties: {
         candidate_key: { type: 'string' },
         description: { type: 'string' },
-        calories: { type: 'integer', minimum: 0, maximum: 2500 },
-        protein: { type: 'integer', minimum: 0, maximum: 250 },
-        carbs: { type: 'integer', minimum: 0, maximum: 400 },
-        fat: { type: 'integer', minimum: 0, maximum: 200 },
       },
     },
   },
